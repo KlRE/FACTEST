@@ -11,8 +11,8 @@ import numpy as np
 
 #TODO: Update choices as new environments and models created
 parser = argparse.ArgumentParser()
-parser.add_argument("model", choices=['car']) #TODO: add options as more are created
-parser.add_argument("env", choices=['maze_2d', 'scots_hscc16']) #TODO: add options as more are created
+parser.add_argument("model", choices=['car','new']) #TODO: add options as more are created
+parser.add_argument("env", choices=['maze_2d', 'scots_hscc16','testing','straight']) #TODO: add options as more are created
 parser.add_argument("--solver", choices=['z3', 'yices', 'gurobi'], default='z3')
 parser.add_argument("--segs", type=int, default=10)
 parser.add_argument("--parts", type=int, default=2)
@@ -27,13 +27,32 @@ print('Plotting: '+str(args.plot))
 if args.model == 'car':
     from demo.models.dubins_car import dubins_car
     model = dubins_car()
-
+elif args.model == 'new':
+    from demo.models.new_model import dubins_car_v2
+    model = dubins_car_v2()
 #TODO: Load in different environments based on what the user specified
 if args.env == 'maze_2d':
     from demo.envs.maze_2d import Theta, G, O, workspace
 elif args.env == 'scots_hscc16':
     from demo.envs.scots_hscc16 import Theta, G, O, workspace
-
+elif args.env == 'testing':
+    from demo.envs.testing import Theta, G, O, workspace
+elif args.env == 'straight':
+    from demo.envs.straight import Theta, G, O, workspace
+# import matplotlib.pyplot as plt
+# from factest.plotting.plot_polytopes import plotPoly
+# fig, ax = plt.subplots()
+# plotPoly(workspace,ax,'yellow')
+# plotPoly(Theta,ax,'blue')
+# plotPoly(G,ax,'green')
+# plotPoly(O,ax,'red')
+# # ax.plot(xref_1, xref_2, marker = 'o')
+# # ax.plot(x_sim, y_sim, linestyle = '--')
+# ax.set_xlim(0,10)
+# ax.set_ylim(0,10)
+# # plt.show()
+# # plt.show(block=True)
+# plt.savefig("graph_test.png")
 #NOTE: Do not change the rest of this script
 if args.solver == 'yices':
     from factest.synthesis.factest_base_yices import FACTEST_yices
@@ -78,4 +97,7 @@ if args.plot:
     ax.plot(x_sim, y_sim, linestyle = '--')
     ax.set_xlim(-10,10)
     ax.set_ylim(-10,10)
-    plt.show()
+    # plt.show()
+    # plt.show(block=True)
+    plt.savefig("graph_test.png")
+    print("printed")
