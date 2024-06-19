@@ -1,3 +1,41 @@
+# def trackingControl(self, curr_state, ref_state, ref_input):
+#         x,y,theta = curr_state
+#         xref,yref,thetaref = ref_state
+#         vref,wref = ref_input
+
+#         xerr = (xref - x)*cos(theta) + (yref - y)*sin(theta)
+#         yerr = (xref - x)*(-sin(theta)) + (yref - y)*cos(theta) 
+        
+#         xerr = -xerr
+#         yerr = -yerr
+#         thetaerr = thetaref - theta
+#         #thetaerr bar is thetaerr - alpha dot
+#         v = vref*cos(thetaerr) + self.k1/100*xerr
+#         w = wref + vref*(self.k2/100*yerr + self.k3/100*sin(thetaerr)) 
+
+#         # f1 = sin(thetaerr) / thetaerr
+#         # v = -self.k1*xerr + vref*cos(thetaerr)
+#         # w = -self.k2*thetaerr + wref - self.k0*vref*yerr*f1 #thetaerr change to theta bar, need to *last by f1 and add a.
+        
+#         #can set ρ to 0 or 1     for this one set to 0
+
+#         phi = np.clip(atan(w*self.length/v),-pi, pi)
+
+#         # input = [v, w]
+#         input = [v,phi]
+
+#         return input
+#     # def errBound(self, init_poly, i):
+#     #     err_0 = init_poly.chebR*sqrt(2)
+#     #     err = sqrt(err_0**2 + (4*i)/(self.k2))
+#     #     # err = 0.1
+#     #     return err
+#     def errBound(self, init_poly, i):
+#         err_0 = init_poly.chebR*sqrt(2)
+#         err = sqrt(err_0**2 + (2*i*pi**2)/(self.k2))
+#         # err = sqrt(err_0**2 + (4*i)/(self.k2))
+#         # print("err: ", err)
+#         return err
 import numpy as np
 from scipy.integrate import odeint
 from math import sin, cos, tan, atan, pi, sqrt, ceil
@@ -7,10 +45,10 @@ class dubins_car_v2:
         #############################
         # Tracking controller gains #
         #############################
-        self.k0 = 10000 #might need to change different k values higher usually converges
-        self.k1 = 1000
-        self.k2 = 1000
-        self.k3 = 1000
+        self.k0 = 50 #1,6,5 and 10,1,3
+        self.k1 = 10
+        self.k2 = 1
+        self.kplot = 1000
 
         self.length = 5
 
@@ -68,39 +106,28 @@ class dubins_car_v2:
         vref,wref = ref_input
 
         xerr = (xref - x)*cos(theta) + (yref - y)*sin(theta)
-        yerr = (xref - x)*(-sin(theta)) + (yref - y)*cos(theta) 
-        
+        yerr = (xref - x)*(-sin(theta)) + (yref - y)*cos(theta)
+        thetaerr = thetaref - theta
         xerr = -xerr
         yerr = -yerr
-        thetaerr = thetaref - theta
-        #thetaerr bar is thetaerr - alpha dot
-        v = vref*cos(thetaerr) + self.k1/100*xerr
-        w = wref + vref*(self.k2/100*yerr + self.k3/100*sin(thetaerr)) 
+        thetaerr = -thetaerr
 
-        # f1 = sin(thetaerr) / thetaerr
-        # v = -self.k1*xerr + vref*cos(thetaerr)
-        # w = -self.k2*thetaerr + wref - self.k0*vref*yerr*f1 #thetaerr change to theta bar, need to *last by f1 and add a.
+        f1 = sin(thetaerr) / thetaerr
+        v = -self.k1*xerr + vref*cos(thetaerr)
+        w = -self.k2*thetaerr + wref - self.k0*vref*yerr*f1 #thetaerr change to theta bar, need to *last by f1 and add a.
         
-        #can set ρ to 0 or 1     for this one set to 0
-
-        phi = np.clip(atan(w*self.length/v),-pi, pi)
+        phi = np.clip(atan(w*self.length/v),-pi/2, pi/2)
 
         # input = [v, w]
         input = [v,phi]
 
         return input
-    # def errBound(self, init_poly, i):
-    #     err_0 = init_poly.chebR*sqrt(2)
-    #     err = sqrt(err_0**2 + (4*i)/(self.k2))
-    #     # err = 0.1
-    #     return err
+
     def errBound(self, init_poly, i):
         err_0 = init_poly.chebR*sqrt(2)
-        # err = sqrt(err_0**2 + (2*i*np.pi**2)/(self.k2))
-        err = sqrt(err_0**2 + (4*i)/(self.k2))
-        # print("err: ", err)
+        err = sqrt(err_0**2 + (2*i*pi**2)/self.kplot)
         return err
-        
+
     def set_ref(self, xref, vref):
         self.ref_traj = []
         self.ref_input = []
@@ -169,9 +196,10 @@ class dubins_car_v2:
             self.set_ref(xref, vref)
         else:
             self.set_timed_ref(xref)
-
+        print("T: ", T, " Type: ", type(T))
+        print("dt: ", self.dt, "Type: ", type(self.dt))
         time_array = np.arange(0,T,self.dt)
-        state_trace = odeint(self.dubinsControlledDynamics, initial_state, time_array, full_output = 1)
+        state_trace = odeint(self.dubinsControlledDynamics, initial_state, time_array)
         return state_trace
 
     def run_omega_simulation(self, hybrid_aut, curr_state, vref = 1, num_cycles = 3):
