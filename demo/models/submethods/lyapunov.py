@@ -74,16 +74,6 @@ class beta:
         self.beta = eval(f"lambda {', '.join(self.const_names + self.var_names)}: {equation}") #joins const + variables EX: ['x','y'] -> "x, y"
 
         models = ["L-BFGS-B", "SLSQP", "Powell", "TNC", "Nelder-Mead", "COBYLA"]
-        # for model in models:
-        #     print(f"Using model {model}")
-        #     computed_min = opt.minimize(lambda vars: self.beta(*self.const_val, *vars), self.init_guess, bounds=self.var_bounds, method = model) #can test with diff methods
-        #     computed_max = opt.minimize(lambda vars: -self.beta(*self.const_val, *vars), self.init_guess, bounds=self.var_bounds, method = model) #can test with diff methods
-        #     print("Minimum: ", self.beta(*self.const_val, *computed_min.x), " at", computed_min.x)
-        #     print("Min computed at: ", computed_min.x)
-        #     print("Maximum: ", self.beta(*self.const_val, *computed_max.x), " at", computed_max.x)
-        #     print("Max computed at: ", computed_max.x)
-        #     print("--------------------------------------")
-
         self.computed_var_min = opt.minimize(lambda vars: self.beta(*self.const_val, *vars), self.init_guess, bounds=self.var_bounds, method = 'Powell') #can test with diff methods
         self.computed_var_max = opt.minimize(lambda vars: -self.beta(*self.const_val, *vars), self.init_guess, bounds=self.var_bounds, method = 'Powell')
         
@@ -94,6 +84,7 @@ class beta:
 
 # class alpha:
 #     def __init__(self, constants, variables, equation)\
+print("Hovercraft:")
 equation0 = "(1-math.cos(etheta))/(k0)"
 
 # c = constant("c", 0.5)
@@ -112,6 +103,7 @@ print("Min: ", func.minimum, " Max: ", func.maximum)
 # print(func.computed_var_min)
 # print()
 print("==============================================")
+print("Robot:")
 equation = "(1/(2*(1+ec/a)))*(ec**2+es**2)"
 
 ec = variable("ec", [-1,1])
@@ -127,15 +119,16 @@ robot = beta([ec, es],[a], equation)
 print("Min: ", robot.minimum, " Max: ", robot.maximum)
 
 print("==============================================")
+print("AUV:")
 equation2 = "np.dot(np.array([k1, k2, k3]), np.array([1-math.cos(phi), 1-math.cos(theta), 1-math.cos(psi)]))"
 
 phi = variable("phi", [0,2*math.pi])
 theta = variable("theta", [0,2*math.pi])
 psi = variable("psi", [0,2*math.pi])
 
-k1 = constant( "k1", 0.1)
+k1 = constant( "k1", 1)
 k2 = constant( "k2", 0.01)
-k3 = constant("k3", 0.001)
+k3 = constant("k3", 0.0001)
 
 print(f"With beta as {equation2}")
 for var in [phi, theta, psi]:
