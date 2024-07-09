@@ -197,9 +197,9 @@ class FACTEST_Z3():
 
         for i, intersection in enumerate(intersections):
             if len(intersection) > 0:
-                print('Segment %d intersects with obstacles:' % i)
+                print(f'Segment {i+1} between points {xrefs[i]} and {xrefs[i+1]} intersects with rectangles:')
                 for obs in intersection:
-                    print(obs)
+                    print(f"({-obs.b[0]}, {obs.b[1]}, {-obs.b[2]}, {obs.b[3]})")
 
 
 
