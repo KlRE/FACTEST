@@ -187,7 +187,7 @@ class FACTEST_Z3():
                         row_sum_0 += xrefs[seg][j] * A_row[j]
                         row_sum_1 += xrefs[seg + 1][j] * A_row[j]
                     #print(type(row_sum_0), type(b_val))
-                    row_constraint = z3.And(bool(row_sum_0 > b_val), bool(row_sum_1 > b_val))
+                    row_constraint = z3.And(bool(row_sum_0 >= b_val), bool(row_sum_1 >= b_val))
                     obs_constraints.append(row_constraint)
 
                 self.s.add(z3.Or(tuple(obs_constraints)))

@@ -6,26 +6,18 @@ sys.path.append(factestPath)
 envs = currFile.replace('/+LLM/evaluate_waypoints.py', '/demo/envs')
 sys.path.append(envs)
 
-from factest.synthesis.factest_base_z3 import FACTEST_Z3  # TODO: Need to update as MILP solver becomes available
+from factest.synthesis.factest_base_z3 import FACTEST_Z3
 from demo.envs.maze_2d import Theta, G, O, workspace
 import matplotlib.pyplot as plt
 from factest.plotting.plot_polytopes import plotPoly
 from feedback_prompt import get_feedback
+from datetime import datetime
 
 FACTEST_prob = FACTEST_Z3(Theta, G, O, workspace=workspace, model=None, seg_max=0, part_max=0, print_statements=True)
 
-xref = [
-    (0.5, 3.6),  # Start point in the start set
-    (1.2, 3.4),
-    (1.7, 3.8),  # Before the first issue
-    (2.3, 4.2),  # Adjusted point to avoid (2.9, 3.0, 3.0, 4.0)
-    (3.0, 4.5),  # Adjusted point to stay above the obstacle
-    (3.7, 4.5),  # Adjusted point to stay consistent and avoid obstacles
-    (4.5, 4.5),  # Adjusted point to stay consistent and avoid obstacles
-    (5.2, 4.2),  # Adjusted point to avoid (4.9, 5.0, 2.0, 4.0)
-    (5.8, 4.3),  # Adjusted point to avoid (5.9, 6.0, 2.0, 5.0)
-    (6.25, 4.7)  # Adjusted end point to reach the goal set
-]
+path = [(0.5, 3.5), (0.9, 3.5), (1.0, 3.5), (1.5, 3.0), (2.0, 3.0), (2.5, 3.5), (3.5, 3.5), (4.5, 4.0), (6.5, 4.75)]
+
+xref = path
 
 obs_feedback = FACTEST_prob.evaluate_waypoints(xref)
 feedback = get_feedback(str(xref), obs_feedback)
@@ -43,3 +35,13 @@ ax.plot(xref_1, xref_2, marker='o')
 ax.set_xlim(0, 10)
 ax.set_ylim(0, 10)
 plt.show()
+
+
+now = datetime.now()
+dt_string = now.strftime("%d%m%Y%H%M%S")
+plt.savefig(f'../images/2/plot_{dt_string}.png')
+
+# append path to file
+path_file = open('../images/2/path.txt', 'a')
+path_file.write(str(xref) + '\n')
+

@@ -35,8 +35,8 @@ Feedback
     End set: Correct, The path ends inside the goal set.
 
 Instructions for Correction
-    Obstacle Avoidance: Adjust the path to avoid intersecting obstacles.
-
+    Obstacle Avoidance: Adjust the path to avoid intersecting obstacles. You may add waypoints as needed to move around obstacles.
+    Note: Only output the array of waypoints representing the path. Do not include any code or algorithm details.
 
 Please revise the path accordingly and provide the corrected array of waypoints."""
 
