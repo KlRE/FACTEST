@@ -1,4 +1,6 @@
 import sys, os
+from typing import List
+
 currFile = os.path.abspath(__file__)
 modelPath = currFile.replace('/factest/synthesis/factest_base_z3.py', '')
 sys.path.append(modelPath)
@@ -67,6 +69,7 @@ class FACTEST_Z3():
                     for j in range(self.dims):
                         row_sum_0 += self.x_ref_terms[seg][j]*A_row[j]
                         row_sum_1 += self.x_ref_terms[seg+1][j]*A_row[j]
+                    print(type(row_sum_0), type(b_val))
                     row_constraint = z3.And(row_sum_0 > b_val, row_sum_1 > b_val)
                     obs_constraints.append(row_constraint)
 
@@ -100,7 +103,7 @@ class FACTEST_Z3():
             if self.model != None:
                 err_bounds = [self.model.errBound(init_poly, i) for i in range(num_segs)]
             else:
-                err_bounds = [0 for i in range(num_segs)]
+                    err_bounds = [0 for i in range(num_segs)]
             
             self.add_initial_constraints(init_poly)
             self.add_goal_constraints(num_segs, err_bounds)
@@ -160,6 +163,46 @@ class FACTEST_Z3():
 
         return self.final_parts
 
+    def evaluate_waypoints(self, xrefs: List):
+        num_segs = len(xrefs) - 1
+        err_bounds = [0 for i in range(num_segs)]
+        self.s = z3.Solver()
+
+        intersections = [[] for i in range(num_segs)]
+        for seg in range(num_segs): # test which segment intersects with which obstacle
+            err = err_bounds[seg]
+
+            for obstacle in self.unsafe_polys:
+                A_obs = obstacle.A
+                b_obs = obstacle.b
+
+                obs_constraints = []
+                for row in range(len(A_obs)):
+                    A_row = A_obs[row]
+                    b_val = b_obs[row] + np.linalg.norm(A_row) * err  # TODO: Need to deal with the bloating
+
+                    row_sum_0 = 0
+                    row_sum_1 = 0
+                    for j in range(self.dims):
+                        row_sum_0 += xrefs[seg][j] * A_row[j]
+                        row_sum_1 += xrefs[seg + 1][j] * A_row[j]
+                    #print(type(row_sum_0), type(b_val))
+                    row_constraint = z3.And(bool(row_sum_0 > b_val), bool(row_sum_1 > b_val))
+                    obs_constraints.append(row_constraint)
+
+                self.s.add(z3.Or(tuple(obs_constraints)))
+                if self.s.check() != z3.sat:
+                    intersections[seg].append(obstacle)
+                self.s.reset()
+
+        for i, intersection in enumerate(intersections):
+            if len(intersection) > 0:
+                print('Segment %d intersects with obstacles:' % i)
+                for obs in intersection:
+                    print(obs)
+
+
+
 if __name__=="__main__":
     #TODO: Make sure that this section is clean and works with current FACTEST setup
     import matplotlib.pyplot as plt
@@ -183,12 +226,13 @@ if __name__=="__main__":
     workspace_poly = pc.Polytope(A, b_workspace)
 
     FACTEST_prob = FACTEST_Z3(initial_poly, goal_poly, unsafe_polys, workspace=workspace_poly)
-    result_dict = FACTEST_prob.run()
-    result_keys = list(result_dict.keys())
-    xref = result_dict[result_keys[0]]['xref']
+    # result_dict = FACTEST_prob.run()
+    # result_keys = list(result_dict.keys())
+    # xref = result_dict[result_keys[0]]['xref']
 
-    print(result_dict)
-
+    # print(result_dict)
+    xref = [[0.5, 0.5], [0.0, 3.25], [3.75, 5.25], [4.5, 4.5]]
+    FACTEST_prob.evaluate_waypoints(xref)
     xref_1 = [xval[0] for xval in xref]
     xref_2 = [xval[1] for xval in xref]
 
@@ -198,6 +242,6 @@ if __name__=="__main__":
     plotPoly(goal_poly,ax,'green')
     plotPoly(unsafe_polys,ax,'red')
     ax.plot(xref_1, xref_2, marker = 'o')
-    ax.set_xlim(-10,10)
-    ax.set_ylim(-10,10)
+    ax.set_xlim(0,10)
+    ax.set_ylim(0,10)
     plt.show()
