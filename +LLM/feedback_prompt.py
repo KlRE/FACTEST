@@ -1,3 +1,5 @@
+
+feedback_prompt = """
 Path Validation and Feedback Task
 Task Overview
 
@@ -26,29 +28,18 @@ Provided Data
 Path Received
 Your generated path:
 
-path = [
-    (0.5, 3.6),
-    (1.2, 3.4),
-    (1.7, 3.8),
-    (2.3, 4.5),
-    (3.2, 4.9),
-    (4.5, 5.0),
-    (6.25, 5.0)
-]
-
+path = {path}
 Feedback
     Start set: Correct, The path starts in the correct start set.
-    Obstacle Issue: Segment 4 between points (2.0, 3.8) and (2.5, 4.2) intersects with rectangles:
-        (1.0, 5.0, 3.9, 4.0)
-        Segment 6 between points (3.5, 4.6) and (4.5, 5.0) intersects with rectangles:
-        (-0.0, 6.0, 4.9, 5.0)
-        Segment 7 between points (4.5, 5.0) and (6.25, 5.0) intersects with rectangles:
-        (5.9, 6.0, 2.0, 5.0)
-        (-0.0, 6.0, 4.9, 5.0)
+    Obstacle Issue: {obstacle_feedback}
     End set: Correct, The path ends inside the goal set.
 
 Instructions for Correction
     Obstacle Avoidance: Adjust the path to avoid intersecting obstacles.
 
 
-Please revise the path accordingly and provide the corrected array of waypoints.
+Please revise the path accordingly and provide the corrected array of waypoints."""
+
+def get_feedback(path: str, obstacle_feedback: str):
+    feedback = feedback_prompt.format(path=path, obstacle_feedback=obstacle_feedback)
+    return feedback

@@ -195,11 +195,14 @@ class FACTEST_Z3():
                     intersections[seg].append(obstacle)
                 self.s.reset()
 
+        report = []
         for i, intersection in enumerate(intersections):
             if len(intersection) > 0:
-                print(f'Segment {i+1} between points {xrefs[i]} and {xrefs[i+1]} intersects with rectangles:')
+                report.append(
+                    f'Segment {i + 1} between points {xrefs[i]} and {xrefs[i + 1]} intersects with rectangles:')
                 for obs in intersection:
-                    print(f"({-obs.b[0]}, {obs.b[1]}, {-obs.b[2]}, {obs.b[3]})")
+                    report.append(f"({-obs.b[0]}, {obs.b[1]}, {-obs.b[2]}, {obs.b[3]})")
+        return '\n'.join(report)
 
 
 
