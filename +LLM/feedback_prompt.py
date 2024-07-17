@@ -51,7 +51,13 @@ Feedback
 Instructions for Correction
     Obstacle Avoidance: Adjust the path to avoid intersecting obstacles. You may add waypoints at problematic waypoints to move around obstacles.
     Note: Only output the array of waypoints representing the path. Do not include any code or algorithm details. You can add comments for each waypoint to explain the path.
-
+    However only return one array in this form:
+    path = [(a,b), #bla bla
+            (c,d), #more explanation
+            ....
+            ]
+            
+Do not provide any other text or explanation except for the path array.
 Please revise the path accordingly and provide the corrected array of waypoints."""
 
 def get_feedback(path: str, obstacle_feedback: str):
