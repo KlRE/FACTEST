@@ -27,16 +27,16 @@ Provided Data
 
 Path Received
 Your generated path:
-
 path = {path}
+
 Feedback
     Start set: Correct, The path starts in the correct start set.
     Obstacle Issue: {obstacle_feedback}
     End set: Correct, The path ends inside the goal set.
 
 Instructions for Correction
-    Obstacle Avoidance: Adjust the path to avoid intersecting obstacles. You may add waypoints as needed to move around obstacles.
-    Note: Only output the array of waypoints representing the path. Do not include any code or algorithm details.
+    Obstacle Avoidance: Adjust the path to avoid intersecting obstacles. You may add waypoints at problematic waypoints to move around obstacles.
+    Note: Only output the array of waypoints representing the path. Do not include any code or algorithm details. You can add comments for each waypoint to explain the path.
 
 Please revise the path accordingly and provide the corrected array of waypoints."""
 
