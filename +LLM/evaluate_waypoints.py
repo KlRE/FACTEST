@@ -49,7 +49,7 @@ def evaluate_waypoints(path, SAVE_PATH):
     # append path to file
     path_file = open(f'{SAVE_PATH}/path.txt', 'a')
     path_file.write(str(xref) + '\n')
-    return feedback
+    return feedback, obs_feedback
 
 if __name__ == "__main__":
     evaluate_waypoints(path, SAVE_PATH)

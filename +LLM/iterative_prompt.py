@@ -55,8 +55,8 @@ def run(num_iterations=20):
 
     for i in range(num_iterations):
         logging.info(f"Iteration {i + 1}")
-        feedback = evaluate_waypoints(path, log_directory)
-        logging.info(f"Feedback: {feedback}")
+        feedback, obs_feedback = evaluate_waypoints(path, log_directory)
+        logging.info(f"Feedback: {obs_feedback}")
         response = ollama.chat(model='llama3', messages=[
             {
                 'role': 'user',
