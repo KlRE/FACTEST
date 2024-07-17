@@ -1,11 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Define the coordinates of the start position and the goal position
-start_xmin, start_ymin, start_xmax, start_ymax = 0.4, 3.6, 0.6, 3.4
-goal_xmin, goal_ymin, goal_xmax, goal_ymax = 6.25, 5.0, 6.75, 4.5
+# Define the coordinates of the start position, obstacles, and goal position
+start_positions = [(0.3, 0.7, 3.3, 3.7)]
+goal_position = [(6.25, 6.75, 4.5, 5.0)]
 
-# Define the coordinates of obstacles
 obstacles = [
     (1.0, 3.0, 0.9, 1.0),   # Obstacle 1
     (1.0, 5.0, 3.9, 4.0),   # Obstacle 2
@@ -30,23 +29,27 @@ obstacles = [
     (0.0, 7.0, 5.0, 5.1)    # Obstacle 21
 ]
 
-# Create the plot
-fig, ax = plt.subplots()
+# Create a new figure and set its size
+fig = plt.figure(figsize=(10, 8))
 
-# Plot start position and goal position as rectangles
-ax.add_patch(plt.Rectangle((start_xmin, start_ymin), (start_xmax-start_xmin), (start_ymax-start_ymin),
-edgecolor='black', facecolor='red'))
-ax.add_patch(plt.Rectangle((goal_xmin, goal_ymin), (goal_xmax-goal_xmin), (goal_ymax-goal_ymin),
-edgecolor='black', facecolor='green'))
+# Iterate over the start positions and plot them as rectangles
+for x_min, x_max, y_min, y_max in start_positions:
+    rect = plt.Rectangle((x_min, y_min), x_max - x_min, y_max - y_min, color='blue')
+    plt.gca().add_patch(rect)
 
-# Plot obstacles as rectangles
-for obstacle in obstacles:
-    xmin, xmax, ymin, ymax = obstacle
-    ax.add_patch(plt.Rectangle((xmin, ymin), (xmax-xmin), (ymax-ymin), edgecolor='black', facecolor='gray'))
+# Iterate over the obstacles and plot them as rectangles
+for xmin, xmax, ymin, ymax in obstacles:
+    rect = plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin, color='red')
+    plt.gca().add_patch(rect)
 
-# Set the limits of the plot
-ax.set_xlim(0, 7)
-ax.set_ylim(0, 6)
+# Plot the goal position as a rectangle
+goal_xmin, goal_xmax, goal_ymin, goal_ymax = goal_position[0]
+rect = plt.Rectangle((goal_xmin, goal_ymin), goal_xmax - goal_xmin, goal_ymax - goal_ymin, color='green')
+plt.gca().add_patch(rect)
 
-# Display the plot
+# Set the x and y limits of the plot
+plt.xlim(0, 7.1)
+plt.ylim(0, 5.1)
+
+# Show the plot
 plt.show()
