@@ -1,75 +1,150 @@
 #need to implement add, multiply, exponential, divide, subtract
-import numpy
+import numpy as np
 import math
-from scipy.optimize import minimize_scalar
-
-# from fractions import Fraction
-
-def add(first, second):
-    #first/second: float
-    return first + second
-
-def multiply(first, second):
-    #first/second: float
-    return first * second
-
-def divide(first, second):
-    return first / second
-
-def subtract(first, second):
-    return first - second
-
-def exponential(base, exponent):
-    #base: String
-    #exponent: float
-    # return float(sum(Fraction(s) for s in base.split()))**exponent
-    return base**exponent
-        # need lower and upper bounds for er (etheta)
-        #er has user provided bound
-        # beta(er) has our bounds
-        # see if can return 
-
-#USER INPUTS CONSTANTS/VARIABLES
-class Constants: #to set constants values
-    c = 0.5
-
-class Variables: #to set constaints (for now only er)
-    er_min = 0
-    er_max = 2*math.pi
-#FINISH 
+# from scipy.optimize import minimize
+import scipy.optimize as opt
+import gurobipy as gp
+from gurobipy import GRB
+from gurobipy import quicksum
 
 
-class lyaponuv:
-    def __init__(self, alpha, beta) -> None:
-        #where alpha and beta are strings of the formula
-        value = 0.5 #float
-        self.constants = Constants()
-        self.variables = Variables()
+class constant:
+    def __init__(self, name : str, value : float):
+        self.value = value
+        self.name = name
+
+class variable:
+    def __init__(self, name : str, bounds = [None, None]): #MAY NEED TO CHANGE BOUNDS = NONE (for inf stuff)
+        self.name = name
+        self.bounds = bounds
+
+# k = constant(100, 'k')
+# theta_err = variable([0, 2*pi], 'e_theta')
+
+class lyapunov:
+    def __init__(self, alpha, beta, e0):#e0 is user provided init error
+        self.alpha = alpha
+        self.beta = beta
+        self.bl = beta.minimum
+        self.bu = beta.maximum
+        self.equation = alpha.equation
+        self.c_value = self.alpha.c_value
+        self.e0 = e0
+
+        m = gp.Model("qp")
+
+        self.ep_names = alpha.var_names
+        ep = m.addMVar(len(self.ep_names), name="ep")
+        m.setObjective(eval(self.equation), GRB.MAXIMIZE)
+        # m.addConstraint(self.c_value* ep@ ep <= self.e0 + self.bu - self.bl, "c0")
+        # m.addConstr(self.c_value*quicksum(ep[i]*ep[i] for i in range(len(self.ep_names))) <= self.e0 + self.bu - self.bl, "c0" )
+        # m.addConstr(self.c_value*quicksum(ep[i]*ep[i] for i in range(len(self.ep_names))) >= 0, "c1" )
+        m.addConstr(eval(self.equation) <= self.e0 + self.bu - self.bl, "c0" )
+        m.addConstr(eval(self.equation) >= 0, "c1" )
+
+        m.optimize()
+        for v in m.getVars():
+            print(f"{v.VarName} {v.X:g}")
+        print(f"Obj: {m.ObjVal:g}")
+
+        # self.ep_names = alpha.var_names
+        # var = [None] * len(self.ep_names)
+        # for i in range(len(self.ep_names)):
+        #     var[i] = m.addVar(self.ep_names[i])
+
+            
+
+        
+
+ 
+class beta:
+    def __init__(self, variables, constants, equation): #variables/constants are list of respective class, equation is string
+        
+        self.const_names = [const.name for const in constants]
+        self.const_val = [const.value for const in constants] #gets the values in order of const name
 
 
-        # self.alpha = add(multiply(self.c,exponential(self.ex,2)), multiply(self.c,exponential(self.ey,2)))
-        self.alpha = eval(f"lambda x,y: {alpha}")
-        self.beta = eval(f"lambda theta: {beta}")
-        # self.beta = lambda theta: 1/2*theta**2
-        # self.beta = lambda theta: (1-math.cos(theta))/2
+        self.var_names = [var.name for var in variables]
+        self.var_bounds = [var.bounds for var in variables] #bounds in order of const name
+        self.init_guess = [(var.bounds[0]+var.bounds[1]-(var.bounds[0]+var.bounds[1])/100)/2 for var in variables] #min of the bounds for init guess
+        self.beta = eval(f"lambda {', '.join(self.const_names + self.var_names)}: {equation}") #joins const + variables EX: ['x','y'] -> "x, y"
 
-    def beta_bounds(self) -> tuple[float, float]:
-        er_bounds = (self.variables.er_min, self.variables.er_max)
-        minimum = minimize_scalar(lambda theta: self.beta(theta), bounds=er_bounds, method='bounded')
-        maximum = minimize_scalar(lambda theta: -self.beta(theta), bounds=er_bounds, method='bounded')
-        return (self.beta(minimum.x)/self.constants.c, self.beta(maximum.x)/self.constants.c)
+        models = ["L-BFGS-B", "SLSQP", "Powell", "TNC", "Nelder-Mead", "COBYLA"]
+        self.computed_var_min = opt.minimize(lambda vars: self.beta(*self.const_val, *vars), self.init_guess, bounds=self.var_bounds, method = 'Powell') #can test with diff methods
+        self.computed_var_max = opt.minimize(lambda vars: -self.beta(*self.const_val, *vars), self.init_guess, bounds=self.var_bounds, method = 'Powell')
+        
 
-#put in alpha in terms of x,y (MAYBE WANT TO CHANGE TO ex, ey??), and beta in terms of theta
-#USER INPUTS ALPHA AND BETA IN TERMS OF x/y and theta
-alpha = "1"
-beta = "1/2*theta**2"
-beta = "(1-math.cos(theta))/2"
-testing = lyaponuv(alpha, beta)
+        self.minimum = self.beta(*self.const_val, *self.computed_var_min.x)
+        self.maximum = self.beta(*self.const_val, *self.computed_var_max.x)
 
 
-min_1, max_1 = testing.beta_bounds()
-print("Given bounds: (", testing.variables.er_min,", ", testing.variables.er_max, ")")
-print("With beta as ", beta)
-print("Computed min: " ,min_1, " Computed max: ", max_1)
+class alpha:
+    def __init__(self, c, variables, equa): #will always be c(ep)ep.T
+        self.c_name = c.name
+        self.equation = equa
+        self.c_value = c.value
 
-# print("4*pi^2: ", 4*math.pi**2)
+        self.var_names = [var.name for var in variables]
+        self.var_bounds = [var.bounds for var in variables]
+
+        # self.beta = eval(f"lambda {', '.join(self.const_names + self.var_names)}: {equation}")
+
+
+    
+
+print("Hovercraft:")
+equation0 = "(1-math.cos(etheta))/(k0)"
+
+k0 = constant("k0",1)
+etheta = variable( "etheta", [0,2*math.pi])
+print(f"With beta as {equation0}")
+print(f"etheta bounds: {etheta.bounds}")
+print(f"k0: {k0.value}")
+func = beta([etheta],[k0], equation0)
+
+print("Min: ", func.minimum, " Max: ", func.maximum)
+
+#LYAPUNOV FUNCTION CREATION 
+c = constant("c", 1/2)
+ex = variable("ex")
+ey = variable("ey")
+alpha_hov = alpha(c, [ex, ey], "ep[0]**2+ep[1]**2")
+lyap_hov = lyapunov(alpha_hov, func, 0.01)
+
+print("==============================================")
+print("Robot:")
+equation = "(1/(2*(1+ec/a)))*(ec**2+es**2)"
+
+ec = variable("ec", [-1,1])
+es = variable("es", [-1,1])
+a = constant("a", 3)
+
+print(f"With beta as {equation}")
+print(f"ec bounds: {ec.bounds}")
+print(f"es bounds: {es.bounds}")
+print(f"a: {a.value}")
+robot = beta([ec, es],[a], equation)
+
+print("Min: ", robot.minimum, " Max: ", robot.maximum)
+
+print("==============================================")
+print("AUV:")
+equation2 = "np.dot(np.array([k1, k2, k3]), np.array([1-math.cos(phi), 1-math.cos(theta), 1-math.cos(psi)]))"
+
+phi = variable("phi", [0,2*math.pi])
+theta = variable("theta", [0,2*math.pi])
+psi = variable("psi", [0,2*math.pi])
+
+k1 = constant( "k1", 1)
+k2 = constant( "k2", 0.01)
+k3 = constant("k3", 0.0001)
+
+print(f"With beta as {equation2}")
+for var in [phi, theta, psi]:
+    print(f"{var.name} bounds: {var.bounds}")
+for const in [k1, k2, k3]:
+    print(f"{const.name}: {const.value}")
+
+auv = beta([phi, theta, psi],[k1, k2, k3], equation2)
+
+print("Min: ", auv.minimum, " Max: ", auv.maximum)
