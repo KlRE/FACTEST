@@ -61,6 +61,10 @@ def run(env_str, num_iterations=20, continue_path=""):
         from demo.envs.easy import Theta, G, O, workspace
     elif env_str == 'hard':
         from demo.envs.hard import Theta, G, O, workspace
+    elif env_str == 'canyon':
+        from demo.envs.canyon import Theta, G, O, workspace
+    elif env_str == 'easier':
+        from demo.envs.easier import Theta, G, O, workspace
     else:
         raise ValueError(f'Environment {env_str} not found')
 
@@ -112,7 +116,7 @@ def run(env_str, num_iterations=20, continue_path=""):
 
     for i in range(num_iterations):
         logging.info(f"Iteration {i + 1}")
-        feedback, obs_feedback = evaluate_waypoints(path, log_directory, Theta, G, O, workspace)
+        feedback, obs_feedback, successful = evaluate_waypoints(path, log_directory, Theta, G, O, workspace)
         logging.info(f"Feedback: {obs_feedback}")
         response = ollama.chat(model='llama3', messages=[
             {
@@ -121,6 +125,9 @@ def run(env_str, num_iterations=20, continue_path=""):
             },
         ])
         logging.info(response['message']['content'])
+        if successful:
+            logging.info("Path is successful")
+            break
         while True:
             try:
                 path = parse_response(response['message']['content'])
@@ -139,4 +146,4 @@ def run(env_str, num_iterations=20, continue_path=""):
 
 
 if __name__ == "__main__":
-    run(env_str='easy', num_iterations=20, continue_path="./logs/easy/2024-07-19_13-45-48")
+    run(env_str='canyon', num_iterations=30)

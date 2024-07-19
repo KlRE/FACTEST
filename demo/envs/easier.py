@@ -13,8 +13,8 @@ b1 = np.array([-4, 5, -4, 5])
 G = pc.Polytope(A, b1)
 
 
-b2 = np.array([-2, 6, 0, 1])
-b3 = np.array([0, 3, -2, 4])
+b2 = np.array([-2, 4, 0, 1])
+b3 = np.array([2, 3, -2, 4])
 
 
 O1 = pc.Polytope(A, b2)

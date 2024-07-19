@@ -202,7 +202,9 @@ class FACTEST_Z3():
                     f'Segment {i + 1} between points {xrefs[i]} and {xrefs[i + 1]} intersects with rectangles:')
                 for obs in intersection:
                     report.append(f"({-obs.b[0]}, {obs.b[1]}, {-obs.b[2]}, {obs.b[3]})")
-        return '\n'.join(report)
+        if len(report) == 0:
+            return 'No intersections found. You solved this task successfully!', True # successful
+        return '\n'.join(report), False
 
 
 

@@ -24,9 +24,13 @@ def evaluate_waypoints(path, SAVE_PATH,Theta, G, O, workspace):
                               print_statements=True)
     xref = path
 
-    obs_feedback = FACTEST_prob.evaluate_waypoints(xref)
-    new_Theta, new_G, new_O, new_workspace = convert_env_polytope_to_arrays(Theta, G, O, workspace)
-    feedback = get_feedback(str(xref), obs_feedback, new_Theta, new_G, new_O, new_workspace)
+    obs_feedback, successful = FACTEST_prob.evaluate_waypoints(xref)
+
+    if successful:
+        feedback = obs_feedback
+    else:
+        new_Theta, new_G, new_O, new_workspace = convert_env_polytope_to_arrays(Theta, G, O, workspace)
+        feedback = get_feedback(str(xref), obs_feedback, new_Theta, new_G, new_O, new_workspace)
 
     xref_1 = [xval[0] for xval in xref]
     xref_2 = [xval[1] for xval in xref]
@@ -61,7 +65,7 @@ def evaluate_waypoints(path, SAVE_PATH,Theta, G, O, workspace):
     # append path to file
     path_file = open(f'{SAVE_PATH}/path.txt', 'a')
     path_file.write(str(xref) + '\n')
-    return feedback, obs_feedback
+    return feedback, obs_feedback, successful
 
 
 if __name__ == "__main__":
