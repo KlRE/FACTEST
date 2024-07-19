@@ -44,11 +44,6 @@ def path_from_file(file_path):
 
 
 def run(num_iterations=20, continue_path=""):
-    logging.basicConfig(
-        level=logging.INFO,
-        format='[%(asctime)s] %(message)s',
-        datefmt='%m/%d/%Y %I:%M:%S %p',
-    )
     if continue_path == "":
         directory = "./logs"
         curent_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -56,6 +51,9 @@ def run(num_iterations=20, continue_path=""):
         os.makedirs(log_directory, exist_ok=True)
 
         logging.basicConfig(
+            level=logging.INFO,
+            format='[%(asctime)s] %(message)s',
+            datefmt='%m/%d/%Y %I:%M:%S %p',
             handlers=[
                 logging.FileHandler(f"{log_directory}/log.txt"),
                 logging.StreamHandler()
@@ -81,6 +79,9 @@ def run(num_iterations=20, continue_path=""):
     else:
         log_directory = continue_path
         logging.basicConfig(
+            level=logging.INFO,
+            format='[%(asctime)s] %(message)s',
+            datefmt='%m/%d/%Y %I:%M:%S %p',
             handlers=[
                 logging.FileHandler(f"{log_directory}/log.txt"),
                 logging.StreamHandler()
@@ -100,10 +101,23 @@ def run(num_iterations=20, continue_path=""):
                 'content': feedback,
             },
         ])
-        path = parse_response(response['message']['content'])
         logging.info(response['message']['content'])
-        logging.info(f'Extracted path: {path}')
+        while True:
+            try:
+                path = parse_response(response['message']['content'])
+                break
+            except:
+                logging.warning("Failed to parse response")
+                response = ollama.chat(model='llama3', messages=[
+                    {
+                        'role': 'user',
+                        'content': feedback,
+                    },
+                ])
+                logging.info(response['message']['content'])
+            logging.info(f'Extracted path: {path}')
+
 
 
 if __name__ == "__main__":
-    run(10, "logs/2024-07-17_17-06-48")
+    run(30, "logs/2024-07-17_18-46-50")
