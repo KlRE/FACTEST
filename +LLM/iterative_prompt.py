@@ -13,6 +13,7 @@ currFile = os.path.abspath(__file__)
 envs = currFile.replace('/+LLM/iterative_prompt.py', '/demo/envs')
 sys.path.append(envs)
 
+
 def parse_response(response):
     # Extract the portion of the text containing the path array
     path_section = re.search(r'path\s*=\s*(\[.*?\])', response, re.DOTALL).group(1)
@@ -25,6 +26,7 @@ def parse_response(response):
     path = [tuple(map(float, coord.strip('()').split(', '))) for coord in coordinates]
 
     return path
+
 
 def path_from_file(file_path):
     with open(file_path, 'r') as file:
@@ -51,7 +53,7 @@ def path_from_file(file_path):
 
 
 def run(env_str, num_iterations=20, continue_path=""):
-    if env_str == 'maze_2d':
+    if env_str == 'maze':
         from demo.envs.maze_2d import Theta, G, O, workspace
     elif env_str == 'scots_hscc16':
         from demo.envs.scots_hscc16 import Theta, G, O, workspace
@@ -113,11 +115,13 @@ def run(env_str, num_iterations=20, continue_path=""):
         path = path_from_file(f"{log_directory}/path.txt")
         logging.info(f"Continuing from path: {path}")
 
-
     for i in range(num_iterations):
         logging.info(f"Iteration {i + 1}")
-        feedback, obs_feedback, successful = evaluate_waypoints(path, log_directory, Theta, G, O, workspace)
-        logging.info(f"Feedback: {obs_feedback}")
+        feedback, obs_feedback, successful, starts_in_init, ends_in_goal = evaluate_waypoints(path, log_directory,
+                                                                                              Theta, G, O, workspace,
+                                                                                              iteration=i)
+        logging.info(f"Feedback: {feedback}")
+        logging.info(f'Starts in init: {starts_in_init}, Ends in goal: {ends_in_goal}')
         response = ollama.chat(model='llama3', messages=[
             {
                 'role': 'user',
@@ -144,7 +148,6 @@ def run(env_str, num_iterations=20, continue_path=""):
             logging.info(f'Extracted path: {path}')
 
 
-
 if __name__ == "__main__":
-    #todo add argparse
-    run(env_str='easier', num_iterations=30)
+    # todo add argparse
+    run(env_str='easy', num_iterations=30)
