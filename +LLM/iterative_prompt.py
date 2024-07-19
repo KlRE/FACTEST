@@ -146,4 +146,5 @@ def run(env_str, num_iterations=20, continue_path=""):
 
 
 if __name__ == "__main__":
-    run(env_str='canyon', num_iterations=30)
+    #todo add argparse
+    run(env_str='easier', num_iterations=30)

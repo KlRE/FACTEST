@@ -164,6 +164,8 @@ class FACTEST_Z3():
         return self.final_parts
 
     def evaluate_waypoints(self, xrefs: List):
+        #todo add the workspace constraints
+        #todo check for goal and start constraints
         num_segs = len(xrefs) - 1
         err_bounds = [0 for i in range(num_segs)]
         self.s = z3.Solver()
