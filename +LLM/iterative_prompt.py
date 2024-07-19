@@ -67,7 +67,7 @@ def run(env_str, num_iterations=20, continue_path=""):
     if continue_path == "":
         directory = "./logs"
         curent_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        log_directory = os.path.join(directory, curent_time)
+        log_directory = os.path.join(directory, env_str, curent_time)
         os.makedirs(log_directory, exist_ok=True)
 
         logging.basicConfig(
@@ -139,4 +139,4 @@ def run(env_str, num_iterations=20, continue_path=""):
 
 
 if __name__ == "__main__":
-    run(env_str='box', num_iterations=20)
+    run(env_str='easy', num_iterations=20, continue_path="./logs/easy/2024-07-19_13-45-48")

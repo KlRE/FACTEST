@@ -10,7 +10,7 @@ b0 = np.array([-0.25, 0.75, -0.25, 0.75])
 Theta = pc.Polytope(A, b0)
 
 b1 = np.array([-4, 5, -4, 5])
-goal = pc.Polytope(A, b1)
+G = pc.Polytope(A, b1)
 
 b2 = np.array([2, 15, 2, 0])
 b3 = np.array([2, 0, 0, 15])
@@ -26,7 +26,7 @@ O4 = pc.Polytope(A, b5)
 O5 = pc.Polytope(A, b6)
 O6 = pc.Polytope(A, b7)
 
-obstacles = [O1, O2, O3, O4, O5, O6]
+O = [O1, O2, O3, O4, O5, O6]
 
 workspace = pc.Polytope(A, np.array([0, 15, 0, 15]))
 

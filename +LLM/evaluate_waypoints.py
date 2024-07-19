@@ -32,8 +32,8 @@ def evaluate_waypoints(path, SAVE_PATH,Theta, G, O, workspace):
     xref_2 = [xval[1] for xval in xref]
 
     increase_factor = 0.2
-    x_min, x_max = workspace.b[0], workspace.b[1]
-    y_min, y_max = workspace.b[2], workspace.b[3]
+    x_min, x_max = -workspace.b[0], workspace.b[1]
+    y_min, y_max = -workspace.b[2], workspace.b[3]
 
     x_range = x_max - x_min
     y_range = y_max - y_min

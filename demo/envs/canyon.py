@@ -12,15 +12,15 @@ Theta = pc.Polytope(A, b0)
 b1 = np.array([-4, 5, -4, 5])
 G = pc.Polytope(A, b1)
 
-b2 = np.array([-4, 6, 2, 0])
-b3 = np.array([-2, 4, 0, 2])
-b4 = np.array([0, 2, -2, 4])
+
+b2 = np.array([-2, 4, 0, 2])
+b3 = np.array([0, 3, -2, 4])
+
 
 O1 = pc.Polytope(A, b2)
 O2 = pc.Polytope(A, b3)
-O3 = pc.Polytope(A, b4)
 
-O = [O1, O2, O3]
+O = [O1, O2]
 
 workspace = pc.Polytope(A, np.array([5, 7, 5, 7]))
 
