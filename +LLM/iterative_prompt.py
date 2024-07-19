@@ -1,10 +1,17 @@
 import os
+import sys
 from datetime import datetime
 
 import ollama
 import re
 import logging
 from evaluate_waypoints import evaluate_waypoints
+from init_prompt import get_init_prompt
+from convert_polytope_to_arrays import convert_env_polytope_to_arrays
+
+currFile = os.path.abspath(__file__)
+envs = currFile.replace('/+LLM/iterative_prompt.py', '/demo/envs')
+sys.path.append(envs)
 
 def parse_response(response):
     # Extract the portion of the text containing the path array
@@ -43,7 +50,20 @@ def path_from_file(file_path):
         logging.warning("No path found in file")
 
 
-def run(num_iterations=20, continue_path=""):
+def run(env_str, num_iterations=20, continue_path=""):
+    if env_str == 'maze_2d':
+        from demo.envs.maze_2d import Theta, G, O, workspace
+    elif env_str == 'scots_hscc16':
+        from demo.envs.scots_hscc16 import Theta, G, O, workspace
+    elif env_str == 'box':
+        from demo.envs.box import Theta, G, O, workspace
+    elif env_str == 'easy':
+        from demo.envs.easy import Theta, G, O, workspace
+    elif env_str == 'hard':
+        from demo.envs.hard import Theta, G, O, workspace
+    else:
+        raise ValueError(f'Environment {env_str} not found')
+
     if continue_path == "":
         directory = "./logs"
         curent_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -59,12 +79,11 @@ def run(num_iterations=20, continue_path=""):
                 logging.StreamHandler()
             ]
         )
-
-        # read first prompt from file
-        prompt_file = open("../+llm/prompt_path")
-        init_prompt = prompt_file.read()
+        new_Theta, new_G, new_O, new_workspace = convert_env_polytope_to_arrays(Theta, G, O, workspace)
+        init_prompt = get_init_prompt(new_Theta, new_G, new_O)
 
         logging.info("Asking initial prompt")
+        logging.info(init_prompt)
         init_response = ollama.chat(model='llama3', messages=[
             {
                 'role': 'user',
@@ -93,7 +112,7 @@ def run(num_iterations=20, continue_path=""):
 
     for i in range(num_iterations):
         logging.info(f"Iteration {i + 1}")
-        feedback, obs_feedback = evaluate_waypoints(path, log_directory)
+        feedback, obs_feedback = evaluate_waypoints(path, log_directory, Theta, G, O, workspace)
         logging.info(f"Feedback: {obs_feedback}")
         response = ollama.chat(model='llama3', messages=[
             {
@@ -120,4 +139,4 @@ def run(num_iterations=20, continue_path=""):
 
 
 if __name__ == "__main__":
-    run(30, "logs/2024-07-17_18-46-50")
+    run(env_str='box', num_iterations=20)

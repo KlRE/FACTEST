@@ -40,13 +40,12 @@ Do not provide any other text or explanation except for the path array.
 Please revise the path accordingly and provide the corrected array of waypoints."""
 
 def get_feedback(path: str, obstacle_feedback: str, Theta, G, O, workspace):
-    # check if O is an array of polytopes
-    if isinstance(O, list) and isinstance(O[0], Polytope):
-        str = "[\n"
+    if isinstance(O, list) and isinstance(O[0], tuple):
+        o = "[\n"
         for i, obstacle in enumerate(O):
-            str += f"    {obstacle},   # Obstacle {i + 1}\n"
-        str += "]"
-        O = str
+            o += f"    {obstacle},   # Obstacle {i + 1}\n"
+        o += "]"
+        O = o
 
     feedback = feedback_prompt.format(path=path, obstacle_feedback=obstacle_feedback, Theta=Theta, G=G, O=O, workspace=workspace)
     return feedback
