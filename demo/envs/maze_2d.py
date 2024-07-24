@@ -3,6 +3,7 @@ import numpy as np
 
 from math import sqrt
 
+title = '2D Maze Environment'
 A = np.array([[-1, 0],
               [1, 0],
               [0, -1],
@@ -70,4 +71,4 @@ workspace = pc.Polytope(A, b_workspace)
 if __name__ == "__main__":
     from plot_env import plot_env
 
-    plot_env('2D Maze Environment', workspace, G, Theta, O)
+    plot_env(title, workspace, G, Theta, O)

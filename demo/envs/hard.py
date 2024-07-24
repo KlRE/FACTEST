@@ -1,6 +1,7 @@
 import polytope as pc
 import numpy as np
 
+title = '2D Hard Environment'
 A = np.array([[-1, 0],
               [1, 0],
               [0, -1],
@@ -33,4 +34,4 @@ workspace = pc.Polytope(A, np.array([0, 15, 0, 15]))
 if __name__ == "__main__":
     from plot_env import plot_env
 
-    plot_env('2D hard Environment', workspace, G, Theta, O)
+    plot_env(title, workspace, G, Theta, O)

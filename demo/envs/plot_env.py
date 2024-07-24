@@ -21,3 +21,19 @@ def plot_env(title, workspace, G, Theta, O):
     ax.autoscale_view()
     plt.title(title)
     plt.show()
+
+
+if __name__ == "__main__":
+    # plot all the environments in this directory
+    # import all the environments
+    import os
+    import importlib.util
+
+    for env in os.listdir('.'):
+        if env.endswith('.py') and env != '__init__.py' and env != 'plot_env.py':
+            spec = importlib.util.spec_from_file_location(env, env)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+
+            print('plotting ', env)
+            plot_env(module.title, module.workspace, module.G, module.Theta, module.O)
