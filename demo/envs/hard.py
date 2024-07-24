@@ -31,24 +31,6 @@ O = [O1, O2, O3, O4, O5, O6]
 workspace = pc.Polytope(A, np.array([0, 15, 0, 15]))
 
 if __name__ == "__main__":
-    import sys, os
-    currFile = os.path.abspath(__file__)
-    modelPath = currFile.replace('/demo/envs/maze_2d.py', '')
-    sys.path.append(modelPath)
+    from plot_env import plot_env
 
-    import matplotlib.pyplot as plt
-    from factest.plotting.plot_polytopes import plotPoly
-
-    fig, ax = plt.subplots()
-
-    plotPoly(goal, ax, 'green')
-    plotPoly(Theta, ax, 'blue')
-    plotPoly(workspace, ax, 'yellow')
-
-    for i, obstacle in enumerate(obstacles, start=1):
-        print('plotting poly #', i)
-        plotPoly(obstacle, ax, 'red')
-
-    ax.set_xlim(0, 16)
-    ax.set_ylim(0, 16)
-    plt.show()
+    plot_env('2D hard Environment', workspace, G, Theta, O)

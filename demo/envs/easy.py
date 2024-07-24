@@ -25,22 +25,6 @@ O = [O1, O2, O3]
 workspace = pc.Polytope(A, np.array([5, 7, 5, 7]))
 
 if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-    from factest.plotting.plot_polytopes import plotPoly
+    from plot_env import plot_env
 
-    fig, ax = plt.subplots()
-
-    plotPoly(G, ax, 'green')
-    plotPoly(Theta, ax, 'blue')
-    plotPoly(workspace, ax, 'yellow')
-
-    i = 1
-    for obstacle in O:
-        print('plotting poly #', i)
-        plotPoly(obstacle, ax, 'red')
-        i += 1
-
-    ax.set_xlim(-5, 7)
-    ax.set_ylim(-5, 7)
-
-    plt.show()
+    plot_env('2D Easy Environment', workspace, G, Theta, O)
