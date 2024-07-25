@@ -8,10 +8,14 @@ import logging
 from evaluate_waypoints import evaluate_waypoints
 from init_prompt import get_init_prompt
 from convert_polytope_to_arrays import convert_env_polytope_to_arrays
+from import_env import import_environment
 
-currFile = os.path.abspath(__file__)
-envs = currFile.replace('/+LLM/iterative_prompt.py', '/demo/envs')
-sys.path.append(envs)
+from enum import Enum
+
+
+class Model(Enum):
+    LLAMA3_8b = 'llama'
+    MISTRAL_NEMO = 'mistral-nemo'
 
 
 def parse_response(response):
@@ -52,28 +56,13 @@ def path_from_file(file_path):
         logging.warning("No path found in file")
 
 
-def run(env_str, num_iterations=20, continue_path=""):
-    if env_str == 'maze':
-        from demo.envs.maze_2d import Theta, G, O, workspace
-    elif env_str == 'scots_hscc16':
-        from demo.envs.scots_hscc16 import Theta, G, O, workspace
-    elif env_str == 'box':
-        from demo.envs.box import Theta, G, O, workspace
-    elif env_str == 'easy':
-        from demo.envs.easy import Theta, G, O, workspace
-    elif env_str == 'hard':
-        from demo.envs.hard import Theta, G, O, workspace
-    elif env_str == 'canyon':
-        from demo.envs.canyon import Theta, G, O, workspace
-    elif env_str == 'easier':
-        from demo.envs.easier import Theta, G, O, workspace
-    else:
-        raise ValueError(f'Environment {env_str} not found')
+def run(env_str, num_iterations=20, continue_path="", model='llama3'):
+    Theta, G, O, workspace = import_environment(env_str)
 
     if continue_path == "":
         directory = "./logs"
         curent_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        log_directory = os.path.join(directory, env_str, curent_time)
+        log_directory = os.path.join(directory, model, env_str, curent_time)
         os.makedirs(log_directory, exist_ok=True)
 
         logging.basicConfig(
@@ -90,15 +79,10 @@ def run(env_str, num_iterations=20, continue_path=""):
 
         logging.info("Asking initial prompt")
         logging.info(init_prompt)
-        init_response = ollama.chat(model='llama3', messages=[
-            {
-                'role': 'user',
-                'content': init_prompt,
-            },
-        ])
-        path = parse_response(init_response['message']['content'])
+        init_response = ollama.generate(model=model, prompt=init_prompt)
+        path = parse_response(init_response['response'])
 
-        logging.info(init_response['message']['content'])
+        logging.info(init_response['response'])
         logging.info(f'Extracted path: {path}')
 
     else:
@@ -122,32 +106,28 @@ def run(env_str, num_iterations=20, continue_path=""):
                                                                                               iteration=i)
         logging.info(f"Feedback: {feedback}")
         logging.info(f'Starts in init: {starts_in_init}, Ends in goal: {ends_in_goal}')
-        response = ollama.chat(model='llama3', messages=[
-            {
-                'role': 'user',
-                'content': feedback,
-            },
-        ])
-        logging.info(response['message']['content'])
+        # response = ollama.chat(model='llama3', messages=[
+        #     {
+        #         'role': 'user',
+        #         'content': feedback,
+        #     },
+        # ])
+        response = ollama.generate(model=model, prompt=feedback)
+        logging.info(response['response'])
         if successful:
             logging.info("Path is successful")
             break
         while True:
             try:
-                path = parse_response(response['message']['content'])
+                path = parse_response(response['response'])
                 break
             except:
                 logging.warning("Failed to parse response")
-                response = ollama.chat(model='llama3', messages=[
-                    {
-                        'role': 'user',
-                        'content': feedback,
-                    },
-                ])
-                logging.info(response['message']['content'])
+                response = ollama.generate(model=model, prompt=feedback)
+                logging.info(response['response'])
             logging.info(f'Extracted path: {path}')
 
 
 if __name__ == "__main__":
     # todo add argparse
-    run(env_str='easy', num_iterations=30)
+    run(env_str='box', num_iterations=30, model='llama3')
