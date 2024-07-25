@@ -33,9 +33,8 @@ if __name__ == "__main__":
     # import all the environments
     import os
     import importlib.util
-    import shutil
 
-    save = True  # if save is True, it will REMOVE all plot files from the plots directory
+    save = False  # if save is True, it will REMOVE all plot files from the plots directory
 
     if save:  # only remove files
         for file in os.listdir('./plots/'):
