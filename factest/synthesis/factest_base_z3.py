@@ -219,6 +219,7 @@ class FACTEST_Z3():
 
             self.s.add(bool(row_sum <= b_val))
         ends_in_goal = self.s.check() == z3.sat
+        self.s.reset()
 
         # check for initial constraints
         A_init = self.initial_parts[0]['poly'].A
@@ -234,6 +235,7 @@ class FACTEST_Z3():
 
             self.s.add(bool(row_sum <= b_val))
         starts_in_init = self.s.check() == z3.sat
+        self.s.reset()
 
         obstacle_report = []
         for i, intersection in enumerate(intersections):
