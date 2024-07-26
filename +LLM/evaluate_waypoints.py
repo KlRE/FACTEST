@@ -13,13 +13,18 @@ from convert_polytope_to_arrays import convert_env_polytope_to_arrays
 
 SAVE_PATH = '../+llm/images/llama3/1'
 
-path = [(0.4, 3.6), (1.2, 3.8), (1.5, 3.9), (1.7, 3.85), (2.05, 3.15), (2.2, 2.95), (2.25, 2.75), (2.4, 2.6),
-        (2.65, 2.5), (2.8, 2.9), (3.1, 3.0), (3.35, 3.7), (3.45, 3.85), (3.55, 3.95), (4.0, 4.2), (4.2, 4.6),
-        (4.5, 4.8),
-        (4.65, 4.9), (5.05, 5.15), (5.35, 5.45), (5.55, 5.65), (6.0, 4.95), (6.1, 4.85), (6.2, 4.75), (6.25, 5.0)]
+path = [
+    (0.5, 3.5),  # Start point within the start set
+    (1.5, 3.5),  # Previous waypoint
+    (2.5, 3.5),  # Previous waypoint
+    (2.5, 2.5),  # Previous waypoint to avoid obstacle 8
+    (3.5, 2.5),  # Previous waypoint to continue avoiding obstacle 8
+    (3.0, 2.0),  # Previous waypoint to avoid obstacle 6 and 7
+    (4.0, 2.0)  # New waypoint to progress towards the goal
+]
 
 
-def evaluate_waypoints(path, SAVE_PATH, Theta, G, O, workspace, iteration):
+def evaluate_waypoints(path, SAVE_PATH, Theta, G, O, workspace, iteration, save=True):
     FACTEST_prob = FACTEST_Z3(Theta, G, O, workspace=workspace, model=None, seg_max=0, part_max=0,
                               print_statements=True)
     xref = path
@@ -46,17 +51,23 @@ def evaluate_waypoints(path, SAVE_PATH, Theta, G, O, workspace, iteration):
     ax.autoscale_view()
 
     plt.title(f'Path evaluation for iteration {iteration}')
-    plt.savefig(f'{SAVE_PATH}/plot_{iteration}.png')
+
+    if save:
+        plt.savefig(f'{SAVE_PATH}/plot_{iteration}.png')
+        path_file = open(f'{SAVE_PATH}/path.txt', 'a')
+        path_file.write(str(xref) + '\n')
+
     plt.show()
 
     # append path to file
-    path_file = open(f'{SAVE_PATH}/path.txt', 'a')
-    path_file.write(str(xref) + '\n')
 
     return feedback, obs_feedback, successful, starts_in_init, ends_in_goal
 
 
 if __name__ == "__main__":
-    feedback, obs_f = evaluate_waypoints(path, SAVE_PATH)
+    from import_env import import_environment
+
+    Theta, G, O, workspace = import_environment('maze_2d')
+    feedback, obs_f, s, st, e = evaluate_waypoints(path, SAVE_PATH, Theta, G, O, workspace, 0, save=False)
     print(feedback)
     print(obs_f)
