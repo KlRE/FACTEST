@@ -182,7 +182,7 @@ class FACTEST_Z3():
         for seg in range(num_segs):  # test which segment intersects with which obstacle
             err = err_bounds[seg]
 
-            for obstacle in self.unsafe_polys:
+            for idx, obstacle in enumerate(self.unsafe_polys):
                 A_obs = obstacle.A
                 b_obs = obstacle.b
 
@@ -202,7 +202,7 @@ class FACTEST_Z3():
 
                 self.s.add(z3.Or(tuple(obs_constraints)))
                 if self.s.check() != z3.sat:
-                    intersections[seg].append(obstacle)
+                    intersections[seg].append((idx, obstacle))
                 self.s.reset()
 
         # check for goal constraints
@@ -241,9 +241,9 @@ class FACTEST_Z3():
         for i, intersection in enumerate(intersections):
             if len(intersection) > 0:
                 obstacle_report.append(
-                    f'Segment {i + 1} between points {xrefs[i]} and {xrefs[i + 1]} intersects with rectangles:')
-                for obs in intersection:
-                    obstacle_report.append(f"({-obs.b[0]}, {obs.b[1]}, {-obs.b[2]}, {obs.b[3]})")
+                    f'Segment {i + 1} between points {xrefs[i]} and {xrefs[i + 1]} intersects with obstacle(s):')
+                for idx, obs in intersection:
+                    obstacle_report.append(f"Obstacle {idx}: ({-obs.b[0]}, {obs.b[1]}, {-obs.b[2]}, {obs.b[3]})")
 
         if len(obstacle_report) == 0 and starts_in_init and ends_in_goal:
             successful = True
