@@ -11,7 +11,6 @@ class Env(Enum):
     DIAGONAL_WALL = 'diagonal_wall'
     EASY = 'easy'
     MAZE_2D = 'maze_2d'
-    PLOT_ENV = 'plot_env'
     SCOTS_HSCC16 = 'scots_hscc16'
     SPIRAL = 'spiral'
     WALL = 'wall'
@@ -26,7 +25,6 @@ env_modules = {
     Env.DIAGONAL_WALL: 'envs.diagonal_wall',
     Env.EASY: 'envs.easy',
     Env.MAZE_2D: 'envs.maze_2d',
-    Env.PLOT_ENV: 'envs.plot_env',
     Env.SCOTS_HSCC16: 'envs.scots_hscc16',
     Env.SPIRAL: 'envs.spiral',
     Env.WALL: 'envs.wall',
@@ -34,9 +32,15 @@ env_modules = {
 
 
 # Step 3: Function to import the necessary modules dynamically
-def import_environment(env_str):
+def import_environment(env_inp):
     try:
-        env = Env(env_str)
+        if isinstance(env_inp, str):
+            env = Env(env_inp)
+        elif isinstance(env_inp, Env):
+            env = env_inp
+        else:
+            raise ValueError('Invalid input')
+
         module_path = env_modules[env]
         module = importlib.import_module(module_path)
         Theta = getattr(module, 'Theta')
@@ -47,11 +51,15 @@ def import_environment(env_str):
         return Theta, G, O, workspace
 
     except KeyError:
-        raise ValueError(f'Environment {env_str} not found')
+        raise ValueError(f'Environment {env_inp} not found')
     except AttributeError as e:
-        raise ImportError(f'Failed to import environment {env_str}: {e}')
+        raise ImportError(f'Failed to import environment {env_inp}: {e}')
 
 
-# Usage
-env_str = 'box'  # or any other valid environment string
-import_environment(env_str)
+if __name__ == "__main__":
+    for env in Env:
+        Theta, G, O, workspace = import_environment(env)
+        print(f'{env.value}: {Theta}, {G}, {O}, {workspace}')
+
+    Theta, G, O, workspace = import_environment('maze_2d')
+    print(Theta, G, O, workspace)

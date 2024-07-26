@@ -45,10 +45,8 @@ def evaluate_waypoints(path, SAVE_PATH, Theta, G, O, workspace, iteration):
 
     ax.autoscale_view()
 
-    now = datetime.now()
-    dt_string = now.strftime("%d-%m-%Y_%H-%M-%S")
-    plt.title(f'Path evaluation for iteration {iteration} \n {dt_string}')
-    plt.savefig(f'{SAVE_PATH}/plot_{dt_string}.png')
+    plt.title(f'Path evaluation for iteration {iteration}')
+    plt.savefig(f'{SAVE_PATH}/plot_{iteration}.png')
     plt.show()
 
     # append path to file
