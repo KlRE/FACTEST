@@ -122,7 +122,7 @@ def iterative_prompt(env_str, num_iterations=20, continue_path="", model='llama3
         logging.info(response['response'])
         if successful:
             logging.info("Path is successful")
-            return True
+            return True, num_iterations
         while True:
             try:
                 path = parse_response(response['response'])
@@ -133,7 +133,7 @@ def iterative_prompt(env_str, num_iterations=20, continue_path="", model='llama3
                 response = ollama.generate(model=model, prompt=feedback)
                 logging.info(response['response'])
 
-    return False
+    return False, num_iterations
 
 
 if __name__ == "__main__":
