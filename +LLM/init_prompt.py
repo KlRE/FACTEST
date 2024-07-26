@@ -33,8 +33,6 @@ Instructions
 
 Example Path Output:
 
-python
-
 path = [
     (start_x1, start_y1),    # Chosen point from the start set
     (waypoint_x2, waypoint_y2),
@@ -58,3 +56,12 @@ def get_init_prompt(Theta, G, O):
         o += "]"
         O = o
     return prompt.format(Theta=Theta, G=G, O=O)
+
+
+if __name__ == "__main__":
+    from import_env import import_environment
+    from convert_polytope_to_arrays import convert_env_polytope_to_arrays
+
+    Theta, G, O, workspace = import_environment('maze_2d')
+    Theta, G, O, workspace = convert_env_polytope_to_arrays(Theta, G, O, workspace)
+    print(get_init_prompt(Theta, G, O))
