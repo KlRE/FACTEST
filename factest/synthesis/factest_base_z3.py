@@ -243,7 +243,7 @@ class FACTEST_Z3():
                 obstacle_report.append(
                     f'Segment {i + 1} between points {xrefs[i]} and {xrefs[i + 1]} intersects with obstacle(s):')
                 for idx, obs in intersection:
-                    obstacle_report.append(f"Obstacle {idx}: ({-obs.b[0]}, {obs.b[1]}, {-obs.b[2]}, {obs.b[3]})")
+                    obstacle_report.append(f"Obstacle {idx + 1}: ({-obs.b[0]}, {obs.b[1]}, {-obs.b[2]}, {obs.b[3]})")
 
         if len(obstacle_report) == 0 and starts_in_init and ends_in_goal:
             successful = True
