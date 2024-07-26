@@ -17,12 +17,14 @@ path = [
     (0.5, 3.5),  # Start point within the start set
     (1.5, 3.5),  # Previous waypoint
     (2.5, 3.5),  # Previous waypoint
-    (2.5, 2.5),  # Previous waypoint to avoid obstacle 8
-    (3.5, 2.5),  # Previous waypoint to continue avoiding obstacle 8
-    (3.0, 2.0),  # Previous waypoint to avoid obstacle 6 and 7
-    (4.0, 2.0)  # New waypoint to progress towards the goal
+    (2.5, 2.5),  # Previous waypoint to avoid obstacles
+    (3.5, 2.5),  # Previous waypoint to avoid obstacles
+    (3.5, 3.0),  # Previous waypoint
+    (5.5, 4.5)  # Adjusted waypoint to avoid obstacles
 ]
 
+
+# path = [(0.5, 3.5), (1.5, 3.5), (2.5, 3.5), (2.5, 2.5), (3.5, 2.5), (3.5, 3.0), (5.0, 5.0)] leads to incorrect collision detection todo
 
 def evaluate_waypoints(path, SAVE_PATH, Theta, G, O, workspace, iteration, save=True):
     FACTEST_prob = FACTEST_Z3(Theta, G, O, workspace=workspace, model=None, seg_max=0, part_max=0,
