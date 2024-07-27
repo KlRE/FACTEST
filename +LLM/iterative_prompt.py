@@ -5,7 +5,7 @@ import ollama
 import re
 import logging
 from evaluate_waypoints import evaluate_waypoints
-from init_prompt import get_init_prompt
+from prompts.init_prompt import get_init_prompt
 from convert_polytope_to_arrays import convert_env_polytope_to_arrays
 from import_env import import_environment
 

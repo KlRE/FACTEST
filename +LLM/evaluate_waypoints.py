@@ -7,21 +7,12 @@ sys.path.append(factestPath)
 from factest.synthesis.factest_base_z3 import FACTEST_Z3
 import matplotlib.pyplot as plt
 from factest.plotting.plot_polytopes import plotPoly
-from feedback_prompt import get_feedback
-from datetime import datetime
+from prompts.feedback_prompt import get_feedback
 from convert_polytope_to_arrays import convert_env_polytope_to_arrays
 
 SAVE_PATH = '../+llm/images/llama3/1'
 
-path = [
-    (0.5, 3.5),  # Start point within the start set
-    (1.5, 3.5),  # Previous waypoint
-    (2.5, 3.5),  # Previous waypoint
-    (2.5, 2.5),  # Previous waypoint to avoid obstacles
-    (3.5, 2.5),  # Previous waypoint to avoid obstacles
-    (3.5, 3.0),  # Previous waypoint
-    (5.5, 4.5)  # Adjusted waypoint to avoid obstacles
-]
+path = [(0.5, 3.5), (1.5, 3.5), (2.5, 3.5), (2.5, 2.5), (3.5, 2.5), (3.5, 3.5), (4.0, 3.8), (6.3, 4.7)]
 
 
 # path = [(0.5, 3.5), (1.5, 3.5), (2.5, 3.5), (2.5, 2.5), (3.5, 2.5), (3.5, 3.0), (5.0, 5.0)] leads to incorrect collision detection todo
@@ -37,7 +28,7 @@ def evaluate_waypoints(path, SAVE_PATH, Theta, G, O, workspace, iteration, save=
         feedback = obs_feedback
     else:
         new_Theta, new_G, new_O, new_workspace = convert_env_polytope_to_arrays(Theta, G, O, workspace)
-        feedback = get_feedback(str(xref), obs_feedback, starts_in_init, ends_in_goal, new_Theta, new_G, new_O,
+        feedback = get_feedback(xref, obs_feedback, starts_in_init, ends_in_goal, new_Theta, new_G, new_O,
                                 new_workspace)
 
     xref_1 = [xval[0] for xval in xref]
