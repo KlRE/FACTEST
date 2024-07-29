@@ -13,6 +13,7 @@ from convert_polytope_to_arrays import convert_env_polytope_to_arrays
 SAVE_PATH = '../+llm/images/llama3/1'
 
 path = [(0.5, 3.5), (1.5, 3.5), (2.5, 3.5), (2.5, 2.5), (3.5, 2.5), (3.5, 3.5), (4.0, 3.8), (6.3, 4.7)]
+path = [(2, 1), (2, 4), (4, 4), (6, 4), (6, 7), (8, 9)]
 
 
 # path = [(0.5, 3.5), (1.5, 3.5), (2.5, 3.5), (2.5, 2.5), (3.5, 2.5), (3.5, 3.0), (5.0, 5.0)] leads to incorrect collision detection todo
@@ -60,7 +61,7 @@ def evaluate_waypoints(path, SAVE_PATH, Theta, G, O, workspace, iteration, save=
 if __name__ == "__main__":
     from import_env import import_environment
 
-    Theta, G, O, workspace = import_environment('maze_2d')
+    Theta, G, O, workspace = import_environment('box')
     feedback, obs_f, s, st, e = evaluate_waypoints(path, SAVE_PATH, Theta, G, O, workspace, 0, save=False)
     print(feedback)
     print(obs_f)
