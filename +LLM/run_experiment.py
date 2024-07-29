@@ -13,6 +13,7 @@ def run_experiment(num_iterations=30, description="", model='mistral-nemo'):
     log_results_file.write(f"Experiment: {description}\n")
     log_results_file.write(f"Number of iterations: {num_iterations}\n")
     log_results_file.write(f"Model: {model}\n")
+    log_results_file.write("-----------------------------\n")
     for env in Env:
         successful, num_iterations = iterative_prompt(env.value, num_iterations, model=model, directory=path)
         log_results_file.write(f"{env.value}: {successful} after {num_iterations} iterations\n")
