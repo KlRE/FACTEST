@@ -125,7 +125,7 @@ def iterative_prompt(env_str, prompting_strat: PromptStrategy, num_iterations=20
         logging.info(response['response'])
         if successful:
             logging.info("Path is successful")
-            return True, num_iterations
+            return True, i
         while True:
             try:
                 path = parse_response(response['response'])
@@ -136,7 +136,7 @@ def iterative_prompt(env_str, prompting_strat: PromptStrategy, num_iterations=20
                 response = ollama.generate(model=model, prompt=feedback)
                 logging.info(response['response'])
 
-    return False, num_iterations
+    return False, i
 
 
 if __name__ == "__main__":
