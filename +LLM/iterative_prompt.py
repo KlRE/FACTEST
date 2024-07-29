@@ -70,7 +70,8 @@ def iterative_prompt(env_str, num_iterations=20, continue_path="", model='llama3
             handlers=[
                 logging.FileHandler(f"{log_directory}/log.txt"),
                 logging.StreamHandler()
-            ]
+            ],
+            force=True
         )
         new_Theta, new_G, new_O, new_workspace = convert_env_polytope_to_arrays(Theta, G, O, workspace)
         init_prompt = get_init_prompt(new_Theta, new_G, new_O)
@@ -100,7 +101,8 @@ def iterative_prompt(env_str, num_iterations=20, continue_path="", model='llama3
             handlers=[
                 logging.FileHandler(f"{log_directory}/log.txt"),
                 logging.StreamHandler()
-            ]
+            ],
+            force=True
         )
         path = path_from_file(f"{log_directory}/path.txt")
         logging.info(f"Continuing from path: {path}")
