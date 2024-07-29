@@ -6,6 +6,7 @@ import re
 import logging
 from evaluate_waypoints import evaluate_waypoints
 from prompts.init_prompt import get_init_prompt
+from prompts.get_prompts import PromptStrategy
 from convert_polytope_to_arrays import convert_env_polytope_to_arrays
 from import_env import import_environment
 
@@ -55,7 +56,8 @@ def path_from_file(file_path):
         logging.warning("No path found in file")
 
 
-def iterative_prompt(env_str, num_iterations=20, continue_path="", model='llama3', directory="./logs"):
+def iterative_prompt(env_str, prompting_strat: PromptStrategy, num_iterations=20, continue_path="", model='llama3',
+                     directory="./logs"):
     Theta, G, O, workspace = import_environment(env_str)
 
     if continue_path == "":
@@ -90,8 +92,6 @@ def iterative_prompt(env_str, num_iterations=20, continue_path="", model='llama3
                 logging.info(init_response['response'])
         logging.info(f'Extracted path: {path}')
 
-
-
     else:
         log_directory = continue_path
         logging.basicConfig(
@@ -109,7 +109,8 @@ def iterative_prompt(env_str, num_iterations=20, continue_path="", model='llama3
 
     for i in range(num_iterations):
         logging.info(f"Iteration {i + 1}")
-        feedback, obs_feedback, successful, starts_in_init, ends_in_goal = evaluate_waypoints(path, log_directory,
+        feedback, obs_feedback, successful, starts_in_init, ends_in_goal = evaluate_waypoints(path, prompting_strat,
+                                                                                              log_directory,
                                                                                               Theta, G, O, workspace,
                                                                                               iteration=i)
         logging.info(f"Feedback: {feedback}")

@@ -1,22 +1,18 @@
 prompt = """
-Motion Planning Task: Path Generation
-Task Objective
-
-Generate a feasible path for a 2D motion planning problem. The path should:
-
+Motion Planning Task
+Task Description
+    Find a feasible path for a 2D motion planning problem. The path should:
     Start Position: Begin within a specified rectangular start set.
     Goal Position: End within a specified rectangular goal set.
     Avoid Obstacles: The path must not intersect any obstacles.
 
 Path Requirements
-
     Waypoints: The path should be represented as an array of waypoints.
-    Linear Connection: Each pair of consecutive waypoints should be linearly connected.
-    Non-Crossing: Ensure the path does not cross any obstacles.
+    Linear Connection: Each pair of consecutive waypoints should be linearly connected forming a continuous path.
+    Non-Crossing: Ensure the path and especially the linearly connected segments do not cross any obstacles.
     Start and End: The path must start within the start set and end in the goal set.
 
 Provided Data
-
     Start Position (Rectangular Set): (xmin, xmax, ymin, ymax) = {Theta}
         Note: You can choose any point within this rectangle to start the path.
     Goal Position (Rectangular Set): (xmin, xmax, ymin, ymax) = {G}
