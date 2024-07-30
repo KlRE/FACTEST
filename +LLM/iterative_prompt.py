@@ -136,7 +136,7 @@ def iterative_prompt(env_str, prompting_strat: PromptStrategy, num_iterations=20
                 response = ollama.generate(model=model, prompt=feedback)
                 logging.info(response['response'])
 
-    return False, i
+    return False, num_iterations
 
 
 if __name__ == "__main__":
