@@ -20,10 +20,12 @@ class Model(Enum):
 
 def parse_response(response):
     # Extract the portion of the text containing the path array
-    path_section = re.search(r'path\s*=\s*(\[.*?\])', response, re.DOTALL).group(1)
-
+    print(response)
+    path_section = re.search(r'path\s*=\s*(\[.*?])', response, re.DOTALL).group(1)
+    print(path_section)
     # Extract all coordinate pairs from the path array
-    coordinate_pattern = re.compile(r'\(\d*\.\d+, \d*\.\d+\)')
+    coordinate_pattern = re.compile(r'\([+-]?(?:\d*\.)?\d+, [+-]?(?:\d*\.)?\d+\)')
+    print(coordinate_pattern.findall(path_section))
     coordinates = coordinate_pattern.findall(path_section)
 
     # Convert the found coordinate pairs to a list of tuples
@@ -37,7 +39,7 @@ def path_from_file(file_path):
         text = file.read()
 
     # Use regex to find all arrays in the text
-    array_pattern = re.compile(r'\[\(.*?\)\]', re.DOTALL)
+    array_pattern = re.compile(r'\[\(.*?\)]', re.DOTALL)
     arrays = array_pattern.findall(text)
 
     # Extract the last array
@@ -45,7 +47,7 @@ def path_from_file(file_path):
         last_array_text = arrays[-1]
 
         # Extract all coordinate pairs from the last array
-        coordinate_pattern = re.compile(r'\(\d*\.\d+, \d*\.\d+\)')
+        coordinate_pattern = re.compile(r'\([+-]?(?:\d*\.)?\d+, [+-]?(?:\d*\.)?\d+\)')
         coordinates = coordinate_pattern.findall(last_array_text)
 
         # Convert the found coordinate pairs to a list of tuples
@@ -140,5 +142,26 @@ def iterative_prompt(env_str, prompting_strat: PromptStrategy, num_iterations=20
 
 
 if __name__ == "__main__":
-    # todo add argparse
-    iterative_prompt(env_str='maze_2d', num_iterations=30, model='mistral-nemo')
+    string = """
+     path = [
+        (-6.0, -4.0),
+        (+6.5, +3.75),
+        (7.0, 3.0)
+    ]
+
+# Explanation:
+- The path starts at the top-left corner of the start set to ensure it's within the specified rectangle.
+- It then moves diagonally upwards and rightwards to avoid Obstacle 1.
+- Finally, it moves horizontally to reach just outside Obstacle 5 and then vertically downwards to end inside the goal set."""
+    # string = """
+    # path = [
+    #     (2.0, 1.5),
+    #     (3.0, 2.5),      # Start just outside the obstacle on bottom edge
+    #     (4.0, 4.0),     # Move right and up to avoid obstacle
+    #     (6.0, 7.5),     # Continue right and up
+    #     (8.0, 9.0),
+    #     (8.5, 9.5)      # End in the goal set
+    # ]
+    # """
+    print(parse_response(string))
+    # iterative_prompt(env_str='maze_2d', num_iterations=30, model='mistral-nemo')

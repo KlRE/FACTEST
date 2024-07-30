@@ -101,7 +101,7 @@ def get_path_output_format():
     """
     return """
 ## Path Format:
-    Provide the path as an array of waypoints.
+    Provide the path as an array of float waypoints.
     
     Example Path Output:
     path = [
