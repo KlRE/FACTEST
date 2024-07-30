@@ -8,6 +8,7 @@ feedback_prompt = """
     End set: {end_feedback}
 
 ## Instructions for Correction
+    No code: Do not include any code in your response.
     {instruct_start}{instruct_end}Obstacle Avoidance: Adjust the path to avoid intersecting obstacles. You may add waypoints at problematic waypoints to move around obstacles.
 """
 
@@ -34,10 +35,11 @@ def get_feedback(path: str, obstacle_feedback: str, starts_in_init: bool, ends_i
 
 
 init_prompt = """
-Instructions
+## Instructions
     Path Array: Output the path as an array of waypoints.
     Start and End: The path must begin at any point within the start set and end at any point within the goal set.
     Obstacle Avoidance: Verify that the path does not intersect any obstacles.
+    No code: Do not include any code in your response.
 """
 
 

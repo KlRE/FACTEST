@@ -30,7 +30,7 @@ def get_feedback_prompt(prompt: PromptStrategy, path: str, obstacle_feedback: st
     if prompt == PromptStrategy.FULL_PATH:
         from prompts.entire_path import get_feedback
     elif prompt == PromptStrategy.STEP_BY_STEP:
-        from prompts.step_by_step_feedback_prompt import get_feedback
+        from prompts.step_by_step import get_feedback
     else:
         assert False, "Should not reach here"
     task_desc = get_task_description(Theta, G, O, workspace)
@@ -45,10 +45,10 @@ def get_init_prompt(promptStrat: PromptStrategy, Theta, G, O, workspace):
     Get the initial prompt for the task
     :return: Initial prompt
     """
-    if prompt == PromptStrategy.FULL_PATH:
+    if promptStrat == PromptStrategy.FULL_PATH:
         from prompts.entire_path import get_init_instruction
-    elif prompt == PromptStrategy.STEP_BY_STEP:
-        from prompts.step_by_step_feedback_prompt import get_feedback
+    elif promptStrat == PromptStrategy.STEP_BY_STEP:
+        from prompts.step_by_step import get_init_instruction
     else:
         assert False, "Should not reach here"
 

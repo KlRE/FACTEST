@@ -5,8 +5,8 @@ import ollama
 import re
 import logging
 from evaluate_waypoints import evaluate_waypoints
-from prompts.init_prompt import get_init_prompt
-from prompts.get_prompts import PromptStrategy
+
+from prompts.get_prompts import PromptStrategy, get_init_prompt
 from convert_polytope_to_arrays import convert_env_polytope_to_arrays
 from import_env import import_environment
 
@@ -76,7 +76,7 @@ def iterative_prompt(env_str, prompting_strat: PromptStrategy, num_iterations=20
             force=True
         )
         new_Theta, new_G, new_O, new_workspace = convert_env_polytope_to_arrays(Theta, G, O, workspace)
-        init_prompt = get_init_prompt(new_Theta, new_G, new_O)
+        init_prompt = get_init_prompt(prompting_strat, new_Theta, new_G, new_O, workspace)
 
         logging.info("Asking initial prompt")
         logging.info(init_prompt)

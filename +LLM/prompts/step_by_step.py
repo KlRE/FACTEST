@@ -23,6 +23,7 @@ def get_feedback(path: str, obstacle_feedback: str, starts_in_init: bool, ends_i
     End set: {end_feedback}
 
 ## Instructions for Correction:
+    No code: Do not include any code in your response.
     {instruct_start}Adjust Only the Last Waypoint: Modify the last waypoint (currently {path[-1]}) so that the final segment does not intersect any obstacles and ends within the goal set.
     Segment Integrity: Ensure that the entire segment from {path[-2]} to the new last waypoint does not intersect any obstacles. The path should be valid for all segments between waypoints.
     Avoid Direct Placement: Do not place the last waypoint directly into the goal set. Instead, adjust it step-by-step while ensuring it avoids obstacles and finally ends within the goal set.
@@ -39,7 +40,8 @@ init_prompt = """
 Instructions
     Path Array: Output the first waypoint of the path.
     Start: The path must begin at any point within the start set.
-    Obstacle Avoidance: Verify that the point does not intersect wiht any obstacles.
+    Obstacle Avoidance: Verify that the point does not intersect with any obstacles.
+    No code: Do not include any code in your response.
 """
 
 
