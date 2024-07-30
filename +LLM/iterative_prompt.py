@@ -20,12 +20,9 @@ class Model(Enum):
 
 def parse_response(response):
     # Extract the portion of the text containing the path array
-    print(response)
     path_section = re.search(r'path\s*=\s*(\[.*?])', response, re.DOTALL).group(1)
-    print(path_section)
     # Extract all coordinate pairs from the path array
     coordinate_pattern = re.compile(r'\([+-]?(?:\d*\.)?\d+, [+-]?(?:\d*\.)?\d+\)')
-    print(coordinate_pattern.findall(path_section))
     coordinates = coordinate_pattern.findall(path_section)
 
     # Convert the found coordinate pairs to a list of tuples

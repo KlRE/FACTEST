@@ -19,7 +19,7 @@ def get_feedback(path: str, obstacle_feedback: str, starts_in_init: bool, ends_i
 
 ## Feedback
     Start set: {start_feedback}
-    Obstacle Issue: {obstacle_feedback}
+    Obstacle Avoidance: {obstacle_feedback}
     End set: {end_feedback}
 
 ## Instructions for Correction:

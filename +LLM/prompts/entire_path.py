@@ -4,7 +4,7 @@ feedback_prompt = """
 
 ## Feedback
     Start set: {start_feedback}
-    Obstacle Issue: {obstacle_feedback}
+    Obstacle Avoidance: {obstacle_feedback}
     End set: {end_feedback}
 
 ## Instructions for Correction

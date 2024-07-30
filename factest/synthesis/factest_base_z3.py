@@ -245,9 +245,12 @@ class FACTEST_Z3():
                 for idx, obs in intersection:
                     obstacle_report.append(f"Obstacle {idx + 1}: ({-obs.b[0]}, {obs.b[1]}, {-obs.b[2]}, {obs.b[3]})")
 
-        if len(obstacle_report) == 0 and starts_in_init and ends_in_goal:
-            successful = True
-            obstacle_feedback_str = 'No intersections found. You solved this task successfully!'
+        if len(obstacle_report) == 0:
+            if starts_in_init and ends_in_goal:
+                successful = True
+                obstacle_feedback_str = 'No intersections found. You solved this task successfully!'
+            else:
+                obstacle_feedback_str = 'No intersections found. You avoided all obstacles!'
         else:
             obstacle_feedback_str = '\n'.join(obstacle_report)
 
