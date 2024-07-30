@@ -28,7 +28,7 @@ def get_feedback_prompt(prompt: PromptStrategy, path: str, obstacle_feedback: st
     :param workspace: Workspace
     """
     if prompt == PromptStrategy.FULL_PATH:
-        from prompts.entire_path_feedback_prompt import get_feedback
+        from prompts.entire_path import get_feedback
     elif prompt == PromptStrategy.STEP_BY_STEP:
         from prompts.step_by_step_feedback_prompt import get_feedback
     else:
@@ -38,6 +38,24 @@ def get_feedback_prompt(prompt: PromptStrategy, path: str, obstacle_feedback: st
     path_format = get_path_output_format()
 
     return task_desc + feedback + path_format
+
+
+def get_init_prompt(promptStrat: PromptStrategy, Theta, G, O, workspace):
+    """
+    Get the initial prompt for the task
+    :return: Initial prompt
+    """
+    if prompt == PromptStrategy.FULL_PATH:
+        from prompts.entire_path import get_init_instruction
+    elif prompt == PromptStrategy.STEP_BY_STEP:
+        from prompts.step_by_step_feedback_prompt import get_feedback
+    else:
+        assert False, "Should not reach here"
+
+    task_desc = get_task_description(Theta, G, O, workspace)
+    init_prompt = get_init_instruction(Theta, G, O)
+    path_format = get_path_output_format()
+    return task_desc + init_prompt + path_format
 
 
 def get_task_description(Theta, G, O, workspace):
@@ -102,7 +120,8 @@ if __name__ == "__main__":
     G = (4, 5, 4, 5)
     O = [(2, 3, 2, 3), (1, 2, 1, 2)]
     workspace = (0, 5, 0, 5)
-
+    prompt = get_init_prompt(Theta, G, O, workspace)
+    print(prompt)
     prompt = get_feedback_prompt(PromptStrategy.FULL_PATH, [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5)],
                                  "No obstacle intersection", True, True, Theta, G, O, workspace)
     print(prompt)

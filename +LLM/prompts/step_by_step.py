@@ -33,3 +33,15 @@ def get_feedback(path: str, obstacle_feedback: str, starts_in_init: bool, ends_i
     #                                   workspace=workspace, start_feedback=start_feedback, end_feedback=end_feedback,
     #                                   instruct_start=instruct_start, instruct_end=instruct_end)
     # return feedback
+
+
+init_prompt = """
+Instructions
+    Path Array: Output the first waypoint of the path.
+    Start: The path must begin at any point within the start set.
+    Obstacle Avoidance: Verify that the point does not intersect wiht any obstacles.
+"""
+
+
+def get_init_instruction(Theta, G, O):
+    return init_prompt.format(Theta=Theta, G=G, O=O)

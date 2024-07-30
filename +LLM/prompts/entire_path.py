@@ -1,5 +1,3 @@
-from polytope import Polytope
-
 feedback_prompt = """
 ## Your generated path:
     path = {path}
@@ -33,3 +31,15 @@ def get_feedback(path: str, obstacle_feedback: str, starts_in_init: bool, ends_i
                                       workspace=workspace, start_feedback=start_feedback, end_feedback=end_feedback,
                                       instruct_start=instruct_start, instruct_end=instruct_end)
     return feedback
+
+
+init_prompt = """
+Instructions
+    Path Array: Output the path as an array of waypoints.
+    Start and End: The path must begin at any point within the start set and end at any point within the goal set.
+    Obstacle Avoidance: Verify that the path does not intersect any obstacles.
+"""
+
+
+def get_init_instruction(Theta, G, O):
+    return init_prompt.format(Theta=Theta, G=G, O=O)
