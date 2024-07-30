@@ -16,12 +16,12 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
     log_results_file.write(f"Model: {model}\n")
     log_results_file.write("-----------------------------\n")
     for env in Env:
-        successful, num_iterations = iterative_prompt(env.value, prompting_strat, num_iterations, model=model,
-                                                      directory=path)
-        log_results_file.write(f"{env.value}: {successful} after {num_iterations} iterations\n")
+        successful, num_iterations_ran = iterative_prompt(env.value, prompting_strat, num_iterations, model=model,
+                                                          directory=path)
+        log_results_file.write(f"{env.value}: {successful} after {num_iterations_ran} iterations\n")
 
     log_results_file.close()
 
 
 if __name__ == "__main__":
-    run_experiment(description="First experiment", model='llama3')
+    run_experiment(description="First experiment", model='mistral-nemo')
