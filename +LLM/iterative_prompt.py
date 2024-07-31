@@ -5,30 +5,12 @@ import ollama
 import re
 import logging
 from evaluate_waypoints import evaluate_waypoints
+from prompts.Prompter import Model, PromptStrategy
 
-from prompts.get_prompts import PromptStrategy, get_init_prompt
 from convert_polytope_to_arrays import convert_env_polytope_to_arrays
 from import_env import import_environment
-
-from enum import Enum
-
-
-class Model(Enum):
-    LLAMA3_8b = 'llama'
-    MISTRAL_NEMO_12b = 'mistral-nemo'
-
-
-def parse_response(response):
-    # Extract the portion of the text containing the path array
-    path_section = re.search(r'path\s*=\s*(\[.*?])', response, re.DOTALL).group(1)
-    # Extract all coordinate pairs from the path array
-    coordinate_pattern = re.compile(r'\([+-]?(?:\d*\.)?\d+, [+-]?(?:\d*\.)?\d+\)')
-    coordinates = coordinate_pattern.findall(path_section)
-
-    # Convert the found coordinate pairs to a list of tuples
-    path = [tuple(map(float, coord.strip('()').split(', '))) for coord in coordinates]
-
-    return path
+from prompts.full_path_prompt import FullPathPrompt
+from prompts.step_by_step_prompt import StepByStepPrompt
 
 
 def path_from_file(file_path):
@@ -55,13 +37,31 @@ def path_from_file(file_path):
         logging.warning("No path found in file")
 
 
-def iterative_prompt(env_str, prompting_strat: PromptStrategy, num_iterations=20, continue_path="", model='llama3',
+def iterative_prompt(env_str, prompting_strat: PromptStrategy, model=Model.LLAMA3_8b, num_iterations=20,
+                     continue_path="",
                      directory="./logs"):
+    """
+    Iteratively prompts the user for feedback on a path until a successful path is found or the maximum number of iterations is reached.
+    If continue_path is provided, the function will continue from the path in the file.
+    :param env_str: The environment to prompt for
+    :param prompting_strat: The prompting strategy to use
+    :param num_iterations: The maximum number of iterations to run
+    :param continue_path: The path to continue from if any or empty string
+    :param model: The model to use for prompting
+    :param directory: The directory to save logs
+    """
     Theta, G, O, workspace = import_environment(env_str)
+    new_Theta, new_G, new_O, new_workspace = convert_env_polytope_to_arrays(Theta, G, O, workspace)
+    if prompting_strat == PromptStrategy.FULL_PATH:
+        Prompter = FullPathPrompt(model, new_Theta, new_G, new_O, new_workspace)
+    elif prompting_strat == PromptStrategy.STEP_BY_STEP:
+        Prompter = StepByStepPrompt(model, new_Theta, new_G, new_O, new_workspace)
+    else:
+        raise ValueError(f"Invalid Prompt Strategy: {prompting_strat}")
 
     if continue_path == "":
-        curent_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        log_directory = os.path.join(directory, model, env_str, curent_time)
+        current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        log_directory = os.path.join(directory, model.value, env_str, current_time)
         os.makedirs(log_directory, exist_ok=True)
 
         logging.basicConfig(
@@ -74,22 +74,9 @@ def iterative_prompt(env_str, prompting_strat: PromptStrategy, num_iterations=20
             ],
             force=True
         )
-        new_Theta, new_G, new_O, new_workspace = convert_env_polytope_to_arrays(Theta, G, O, workspace)
-        init_prompt = get_init_prompt(prompting_strat, new_Theta, new_G, new_O, workspace)
 
         logging.info("Asking initial prompt")
-        logging.info(init_prompt)
-        init_response = ollama.generate(model=model, prompt=init_prompt)
-        logging.info(init_response['response'])
-        while True:
-            try:
-                path = parse_response(init_response['response'])
-                break
-            except:
-                logging.warning("Failed to parse response")
-                init_response = ollama.generate(model=model, prompt=init_prompt)
-                logging.info(init_response['response'])
-        logging.info(f'Extracted path: {path}')
+        path = Prompter.prompt_init()
 
     else:
         log_directory = continue_path
@@ -108,33 +95,16 @@ def iterative_prompt(env_str, prompting_strat: PromptStrategy, num_iterations=20
 
     for i in range(num_iterations):
         logging.info(f"Iteration {i + 1}")
-        feedback, obs_feedback, successful, starts_in_init, ends_in_goal = evaluate_waypoints(path, prompting_strat,
-                                                                                              log_directory,
-                                                                                              Theta, G, O, workspace,
-                                                                                              iteration=i)
-        logging.info(f"Feedback: {feedback}")
+        obs_feedback, successful, starts_in_init, ends_in_goal = evaluate_waypoints(path, prompting_strat,
+                                                                                    log_directory,
+                                                                                    Theta, G, O, workspace,
+                                                                                    iteration=i + 1)
         logging.info(f'Starts in init: {starts_in_init}, Ends in goal: {ends_in_goal}')
-        # response = ollama.chat(model='llama3', messages=[
-        #     {
-        #         'role': 'user',
-        #         'content': feedback,
-        #     },
-        # ])
-        response = ollama.generate(model=model, prompt=feedback)
-        logging.info(response['response'])
+
         if successful:
             logging.info("Path is successful")
             return True, i
-        while True:
-            try:
-                path = parse_response(response['response'])
-                logging.info(f'Extracted path: {path}')
-                break
-            except:
-                logging.warning("Failed to parse response")
-                response = ollama.generate(model=model, prompt=feedback)
-                logging.info(response['response'])
-
+        path = Prompter.prompt_feedback(path, obs_feedback, starts_in_init, ends_in_goal)
     return False, num_iterations
 
 
@@ -160,5 +130,6 @@ if __name__ == "__main__":
     #     (8.5, 9.5)      # End in the goal set
     # ]
     # """
-    print(parse_response(string))
-    # iterative_prompt(env_str='maze_2d', num_iterations=30, model='mistral-nemo')
+
+    iterative_prompt(env_str='maze_2d', prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30,
+                     model=Model.MISTRAL_NEMO_12b)

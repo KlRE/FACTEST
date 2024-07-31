@@ -132,7 +132,7 @@ class Prompter(ABC):
         :param starts_in_init: Starts in initial set
         :param ends_in_goal: Ends in goal set
         """
-        feedback = self.get_feedback(path, obstacle_feedback, starts_in_init, ends_in_goal)
+        feedback = self.get_feedback_prompt(path, obstacle_feedback, starts_in_init, ends_in_goal)
         return self.prompt_model(feedback)
 
     def get_feedback_prompt(self, path: List[Tuple], obstacle_feedback: str, starts_in_init: bool,
