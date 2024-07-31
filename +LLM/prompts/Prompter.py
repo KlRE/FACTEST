@@ -139,7 +139,7 @@ class Prompter(ABC):
         Note: You can choose any point within this rectangle to start the path.
     Goal Position (Rectangular Set): (xmin, xmax, ymin, ymax) = {self.G}
         Note: You can choose any point within this rectangle to end the path.
-    Obstacles (Rectangles):
+    Obstacles (Rectangular Sets): (xmin, xmax, ymin, ymax):
         obstacles = {O}
     """
         return task_description

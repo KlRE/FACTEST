@@ -10,7 +10,7 @@ class FullPathPrompt(PathPrompter):
 
 ## Feedback
     Start set: {start_feedback}
-    Obstacle Avoidance:
+    Obstacle Avoidance (Rectangular Sets): (xmin, xmax, ymin, ymax):
 {obstacle_feedback}
     End set: {end_feedback}
 
