@@ -173,6 +173,7 @@ class FACTEST_Z3():
         ends_in_goal = False
         starts_in_init = False
         successful = False
+        intersects = False
 
         num_segs = len(xrefs) - 1
         err_bounds = [0 for i in range(num_segs)]
@@ -203,6 +204,7 @@ class FACTEST_Z3():
                 self.s.add(z3.Or(tuple(obs_constraints)))
                 if self.s.check() != z3.sat:
                     intersections[seg].append((idx, obstacle))
+                    intersects = True
                 self.s.reset()
 
         # check for goal constraints
@@ -237,40 +239,26 @@ class FACTEST_Z3():
         starts_in_init = self.s.check() == z3.sat
         self.s.reset()
 
-        # obstacle_report = []
-        # for i, intersection in enumerate(intersections):
-        #     if len(intersection) > 0:
-        #         obstacle_report.append(
-        #             f'Segment {i + 1} between points {xrefs[i]} and {xrefs[i + 1]} intersects with obstacle(s):')
-        #         for idx, obs in intersection:
-        #             obstacle_report.append(f"Obstacle {idx + 1}: ({-obs.b[0]}, {obs.b[1]}, {-obs.b[2]}, {obs.b[3]})")
-        #
-        # if len(obstacle_report) == 0:
-        #     if starts_in_init and ends_in_goal:
-        #         successful = True
-        #         obstacle_feedback_str = 'No intersections found. You solved this task successfully!'
-        #     else:
-        #         obstacle_feedback_str = 'No intersections found. You avoided all obstacles!'
-        # else:
-        #     obstacle_feedback_str = '\n'.join(obstacle_report)
+        successful = starts_in_init and ends_in_goal and not intersects
 
         return intersections, successful, starts_in_init, ends_in_goal
 
 
 if __name__ == "__main__":
     # TODO: Make sure that this section is clean and works with current FACTEST setup
+
     import matplotlib.pyplot as plt
     from factest.plotting.plot_polytopes import plotPoly
 
     print('testing!')
-
+    # bugged?
     A = np.array([[-1, 0],
                   [1, 0],
                   [0, -1],
                   [0, 1]])
     b_init = np.array([[0], [1], [0], [1]])
-    b_goal = np.array([[-4], [5], [-4], [5]])
-    b_unsafe1 = np.array([[-3], [3.5], [0], [5]])
+    b_goal = np.array([[-3], [4], [-4], [5]])
+    b_unsafe1 = np.array([[-3], [3.5], [0], [2.5]])
     b_unsafe2 = np.array([[-3], [7], [-5.5], [6]])
     b_unsafe3 = np.array([[-3], [7], [1], [0]])
     b_workspace = np.array([0, 7, 1, 7])
@@ -281,13 +269,13 @@ if __name__ == "__main__":
     workspace_poly = pc.Polytope(A, b_workspace)
 
     FACTEST_prob = FACTEST_Z3(initial_poly, goal_poly, unsafe_polys, workspace=workspace_poly)
-    # result_dict = FACTEST_prob.run()
-    # result_keys = list(result_dict.keys())
-    # xref = result_dict[result_keys[0]]['xref']
+    result_dict = FACTEST_prob.run()
+    result_keys = list(result_dict.keys())
+    xref = result_dict[result_keys[0]]['xref']
 
     # print(result_dict)
-    xref = [[0.5, 0.5], [0.0, 3.25], [3.75, 5.25], [4.5, 4.5]]
-    FACTEST_prob.evaluate_waypoints(xref)
+    # xref = [[0.5, 0.5], [0.0, 3.25], [3.75, 5.25], [4.5, 4.5]]
+    # FACTEST_prob.evaluate_waypoints(xref)
     xref_1 = [xval[0] for xval in xref]
     xref_2 = [xval[1] for xval in xref]
 
