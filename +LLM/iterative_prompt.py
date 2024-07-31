@@ -76,7 +76,11 @@ def iterative_prompt(env_str, prompting_strat: PromptStrategy, model=Model.LLAMA
         )
 
         logging.info("Asking initial prompt")
-        path = Prompter.prompt_init()
+        successful_prompt, path = Prompter.prompt_init()
+
+        if not successful_prompt:
+            logging.warning("Failed to get initial prompt")
+            return False, -1
 
     else:
         log_directory = continue_path
@@ -95,16 +99,19 @@ def iterative_prompt(env_str, prompting_strat: PromptStrategy, model=Model.LLAMA
 
     for i in range(num_iterations):
         logging.info(f"Iteration {i + 1}")
-        obs_feedback, successful, starts_in_init, ends_in_goal = evaluate_waypoints(path, prompting_strat,
-                                                                                    log_directory,
-                                                                                    Theta, G, O, workspace,
-                                                                                    iteration=i + 1)
+        intersections, successful, starts_in_init, ends_in_goal = evaluate_waypoints(path, log_directory,
+                                                                                     Theta, G, O, workspace,
+                                                                                     iteration=i + 1)
         logging.info(f'Starts in init: {starts_in_init}, Ends in goal: {ends_in_goal}')
 
         if successful:
             logging.info("Path is successful")
             return True, i
-        path = Prompter.prompt_feedback(path, obs_feedback, starts_in_init, ends_in_goal)
+        successful_prompt, path = Prompter.prompt_feedback(path, intersections, starts_in_init, ends_in_goal)
+        if not successful_prompt:
+            logging.warning("Failed to get feedback prompt")
+            return False, i
+
     return False, num_iterations
 
 
@@ -131,5 +138,5 @@ if __name__ == "__main__":
     # ]
     # """
 
-    iterative_prompt(env_str='maze_2d', prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30,
+    iterative_prompt(env_str='wall', prompting_strat=PromptStrategy.STEP_BY_STEP, num_iterations=30,
                      model=Model.MISTRAL_NEMO_12b)

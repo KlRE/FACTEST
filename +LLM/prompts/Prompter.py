@@ -2,7 +2,7 @@ import logging
 import re
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import List, Tuple
+from typing import List, Tuple, Any
 
 import ollama
 
@@ -46,30 +46,6 @@ class Prompter(ABC):
         self.O = O
         self.workspace = workspace
 
-    @staticmethod
-    def from_Prompt_Strategy(Prompt_Strategy: PromptStrategy, model: Model, Theta, G, O, workspace):
-        print(isinstance(model, Model), type(model))
-        if Prompt_Strategy == PromptStrategy.FULL_PATH:
-            from prompts.full_path_prompt import FullPathPrompt
-            return FullPathPrompt(model, Theta, G, O, workspace)
-        elif Prompt_Strategy == PromptStrategy.STEP_BY_STEP:
-            from prompts.step_by_step_prompt import StepByStepPrompt
-            return StepByStepPrompt(model, Theta, G, O, workspace)
-        else:
-            raise ValueError(f"Invalid Prompt Strategy: {Prompt_Strategy}")
-
-    @abstractmethod
-    def get_feedback(self, path: List[Tuple], obstacle_feedback: str, starts_in_init: bool, ends_in_goal: bool):
-        """
-        Get the feedback for the given environment
-        :param path: Path
-        :param obstacle_feedback: Obstacle feedback
-        :param starts_in_init: Starts in initial set
-        :param ends_in_goal: Ends in goal set
-        :return: Feedback
-        """
-        pass
-
     @abstractmethod
     def get_init_instruction(self):
         """
@@ -95,13 +71,16 @@ class Prompter(ABC):
         """
         pass
 
-    def prompt_model(self, prompt: str, max_attempts=5, ):
+    def prompt_model(self, prompt: str, max_attempts=10, log_message='Prompting model') -> Tuple[bool, Any]:
         """
         Prompt the model with the given prompt and parse the response
         :param prompt: Prompt
         :param max_attempts: Maximum number of attempts
+        :param log_message: Log message
+        :return: (bool) Successful, (Any) Parsed response
         """
-        logging.info("Prompting model")
+        successful = False
+        logging.info(log_message)
         logging.info(prompt)
         response = ollama.generate(model=self.model, prompt=prompt)
         logging.info(response['response'])
@@ -109,12 +88,13 @@ class Prompter(ABC):
             try:
                 parsed_response = self.parse_response(response['response'])
                 logging.info(f'Parsed response: {parsed_response}')
-                return parsed_response
-            except:
-                logging.warning(f"Failed to parse response. Trying attempt {i + 1}")
+                successful = True
+                return successful, parsed_response
+            except Exception as e:
+                logging.warning(f"Failed to parse response because of Exception {e} Trying attempt {i + 1}")
                 response = ollama.generate(model=self.model, prompt=prompt)
                 logging.info(response['response'])
-        raise ValueError("Failed to parse response")
+        return successful, None
 
     def prompt_init(self):
         """
@@ -123,32 +103,6 @@ class Prompter(ABC):
         """
         init_prompt = self.get_init_prompt()
         return self.prompt_model(init_prompt)
-
-    def prompt_feedback(self, path, obstacle_feedback, starts_in_init, ends_in_goal):
-        """
-        Prompt the feedback
-        :param path: Path
-        :param obstacle_feedback: Obstacle feedback
-        :param starts_in_init: Starts in initial set
-        :param ends_in_goal: Ends in goal set
-        """
-        feedback = self.get_feedback_prompt(path, obstacle_feedback, starts_in_init, ends_in_goal)
-        return self.prompt_model(feedback)
-
-    def get_feedback_prompt(self, path: List[Tuple], obstacle_feedback: str, starts_in_init: bool,
-                            ends_in_goal: bool):
-        """
-        Get the feedback prompt for the given environment
-        :param path: Path
-        :param obstacle_feedback: Obstacle feedback
-        :param starts_in_init: Starts in initial set
-        :param ends_in_goal: Ends in goal set
-        """
-        task_desc = self.get_task_description()
-        feedback = self.get_feedback(path, obstacle_feedback, starts_in_init, ends_in_goal)
-        path_format = self.get_path_output_format()
-
-        return task_desc + feedback + path_format
 
     def get_init_prompt(self):
         """
@@ -192,7 +146,59 @@ class Prompter(ABC):
 
 
 class PathPrompter(Prompter, ABC):
+    @abstractmethod
+    def get_feedback(self, path: List[Tuple], intersections, starts_in_init: bool, ends_in_goal: bool):
+        """
+        Get the feedback for the given environment
+        :param path: Path
+        :param intersections: Intersections
+        :param starts_in_init: Starts in initial set
+        :param ends_in_goal: Ends in goal set
+        :return: Feedback
+        """
+        pass
+
+    def prompt_feedback(self, path, intersections, starts_in_init, ends_in_goal):
+        """
+        Prompt the feedback
+        :param path: Path
+        :param intersections: Intersections
+        :param starts_in_init: Starts in initial set
+        :param ends_in_goal: Ends in goal set
+        """
+        feedback = self.get_feedback_prompt(path, intersections, starts_in_init, ends_in_goal)
+        return self.prompt_model(feedback)
+
+    def get_feedback_prompt(self, path: List[Tuple], intersections, starts_in_init: bool,
+                            ends_in_goal: bool):
+        """
+        Get the feedback prompt for the given environment
+        :param path: Path
+        :param intersections: Intersections
+        :param starts_in_init: Starts in initial set
+        :param ends_in_goal: Ends in goal set
+        """
+        task_desc = self.get_task_description()
+        feedback = self.get_feedback(path, intersections, starts_in_init, ends_in_goal)
+        path_format = self.get_path_output_format()
+
+        return task_desc + feedback + path_format
+
     def parse_response(self, response):
+        """
+        Parse the response to extract the path array
+        Example response:
+        path = [
+            (0.0, 0.0),
+            (1.0, 1.0),
+            (2.0, 2.0),
+            (3.0, 3.0),
+            (4.0, 4.0),
+            (5.0, 5.0)
+        ]
+        :param response: Response
+        :return: Path array
+        """
         # Extract the portion of the text containing the path array
         path_section = re.search(r'path\s*=\s*(\[.*?])', response, re.DOTALL).group(1)
         # Extract all coordinate pairs from the path array
@@ -216,12 +222,33 @@ class PathPrompter(Prompter, ABC):
     Example Path Output:
     path = [
         (waypoint_x1, waypoint_y1),    
-        (waypoint_x2, waypoint_y2),
-        (waypoint_x3, waypoint_y3),
         ...,
         (waypoint_xn, waypoint_yn)       
     ]
     """
+
+    def obstacle_feedback(self, intersections, path):
+        """
+        Get the feedback for the obstacle avoidance
+        :param intersections: Intersections
+        :param path: Path
+        :return: (str) Feedback, (bool) Intersecting
+        """
+        intersecting = True
+        obstacle_report = []
+        for i, intersection in enumerate(intersections):
+            if len(intersection) > 0:
+                obstacle_report.append(
+                    f'\t\tSegment {i + 1} between points {path[i]} and {path[i + 1]} intersects with obstacle(s):')
+                for idx, obs in intersection:
+                    obstacle_report.append(
+                        f"\t\tObstacle {idx + 1}: ({-obs.b[0]}, {obs.b[1]}, {-obs.b[2]}, {obs.b[3]})")
+
+        if len(obstacle_report) == 0:
+            intersecting = False
+            return 'No intersections found. You avoided all obstacles!', intersecting
+
+        return '\n'.join(obstacle_report), intersecting
 
 
 if __name__ == "__main__":

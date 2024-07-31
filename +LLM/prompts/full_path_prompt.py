@@ -10,7 +10,8 @@ class FullPathPrompt(PathPrompter):
 
 ## Feedback
     Start set: {start_feedback}
-    Obstacle Avoidance: {obstacle_feedback}
+    Obstacle Avoidance:
+{obstacle_feedback}
     End set: {end_feedback}
 
 ## Instructions for Correction
@@ -23,10 +24,12 @@ class FullPathPrompt(PathPrompter):
     Path Array: Output the path as an array of waypoints.
     Start and End: The path must begin at any point within the start set and end at any point within the goal set.
     Obstacle Avoidance: Verify that the path does not intersect any obstacles.
-    No code: Do not include any code in your response.
+    No code: Do not include any code in your response and do not try solve this with an algorithm.
     """
 
-    def get_feedback(self, path: List[Tuple], obstacle_feedback: str, starts_in_init: bool, ends_in_goal: bool) -> str:
+    def get_feedback(self, path: List[Tuple], intersections, starts_in_init: bool, ends_in_goal: bool) -> str:
+        obstacle_feedback, intersecting = self.obstacle_feedback(intersections, path)
+
         if starts_in_init:
             start_feedback = "Correct, The path starts in the correct start set."
             instruct_start = ""

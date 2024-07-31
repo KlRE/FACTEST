@@ -26,12 +26,12 @@ path = [
 
 # path = [(0.5, 3.5), (1.5, 3.5), (2.5, 3.5), (2.5, 2.5), (3.5, 2.5), (3.5, 3.0), (5.0, 5.0)] leads to incorrect collision detection todo
 
-def evaluate_waypoints(path, prompt_strat: PromptStrategy, SAVE_PATH, Theta, G, O, workspace, iteration, save=True):
+def evaluate_waypoints(path, SAVE_PATH, Theta, G, O, workspace, iteration, save=True):
     FACTEST_prob = FACTEST_Z3(Theta, G, O, workspace=workspace, model=None, seg_max=0, part_max=0,
                               print_statements=True)
     xref = path
 
-    obs_feedback, successful, starts_in_init, ends_in_goal = FACTEST_prob.evaluate_waypoints(xref)
+    intersections, successful, starts_in_init, ends_in_goal = FACTEST_prob.evaluate_waypoints(xref)
 
     # if successful:
     #     feedback = obs_feedback
@@ -64,7 +64,7 @@ def evaluate_waypoints(path, prompt_strat: PromptStrategy, SAVE_PATH, Theta, G, 
 
     # append path to file
 
-    return obs_feedback, successful, starts_in_init, ends_in_goal
+    return intersections, successful, starts_in_init, ends_in_goal
 
 
 if __name__ == "__main__":

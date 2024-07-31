@@ -237,24 +237,24 @@ class FACTEST_Z3():
         starts_in_init = self.s.check() == z3.sat
         self.s.reset()
 
-        obstacle_report = []
-        for i, intersection in enumerate(intersections):
-            if len(intersection) > 0:
-                obstacle_report.append(
-                    f'Segment {i + 1} between points {xrefs[i]} and {xrefs[i + 1]} intersects with obstacle(s):')
-                for idx, obs in intersection:
-                    obstacle_report.append(f"Obstacle {idx + 1}: ({-obs.b[0]}, {obs.b[1]}, {-obs.b[2]}, {obs.b[3]})")
+        # obstacle_report = []
+        # for i, intersection in enumerate(intersections):
+        #     if len(intersection) > 0:
+        #         obstacle_report.append(
+        #             f'Segment {i + 1} between points {xrefs[i]} and {xrefs[i + 1]} intersects with obstacle(s):')
+        #         for idx, obs in intersection:
+        #             obstacle_report.append(f"Obstacle {idx + 1}: ({-obs.b[0]}, {obs.b[1]}, {-obs.b[2]}, {obs.b[3]})")
+        #
+        # if len(obstacle_report) == 0:
+        #     if starts_in_init and ends_in_goal:
+        #         successful = True
+        #         obstacle_feedback_str = 'No intersections found. You solved this task successfully!'
+        #     else:
+        #         obstacle_feedback_str = 'No intersections found. You avoided all obstacles!'
+        # else:
+        #     obstacle_feedback_str = '\n'.join(obstacle_report)
 
-        if len(obstacle_report) == 0:
-            if starts_in_init and ends_in_goal:
-                successful = True
-                obstacle_feedback_str = 'No intersections found. You solved this task successfully!'
-            else:
-                obstacle_feedback_str = 'No intersections found. You avoided all obstacles!'
-        else:
-            obstacle_feedback_str = '\n'.join(obstacle_report)
-
-        return obstacle_feedback_str, successful, starts_in_init, ends_in_goal
+        return intersections, successful, starts_in_init, ends_in_goal
 
 
 if __name__ == "__main__":
