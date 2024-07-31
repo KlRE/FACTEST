@@ -200,7 +200,7 @@ class PathPrompter(Prompter, ABC):
         :return: Path array
         """
         # Extract the portion of the text containing the path array
-        path_section = re.search(r'path\s*=\s*(\[.*?])', response, re.DOTALL).group(1)
+        path_section = re.search(r'new_path\s*=\s*(\[.*?])', response, re.DOTALL).group(1)
         # Extract all coordinate pairs from the path array
         coordinate_pattern = re.compile(r'\([+-]?(?:\d*\.)?\d+, [+-]?(?:\d*\.)?\d+\)')
         coordinates = coordinate_pattern.findall(path_section)
@@ -217,10 +217,10 @@ class PathPrompter(Prompter, ABC):
         """
         return """
 ## Path Format:
-    Provide the path as an array of waypoints.
+    Provide the new improved path as an array of waypoints.
 
     Example Path Output:
-    path = [
+    new_path = [
         (waypoint_x1, waypoint_y1),    
         ...,
         (waypoint_xn, waypoint_yn)       

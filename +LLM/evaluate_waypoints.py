@@ -7,8 +7,6 @@ sys.path.append(factestPath)
 from factest.synthesis.factest_base_z3 import FACTEST_Z3
 import matplotlib.pyplot as plt
 from factest.plotting.plot_polytopes import plotPoly
-from prompts.get_prompts import PromptStrategy, get_feedback_prompt
-from convert_polytope_to_arrays import convert_env_polytope_to_arrays
 
 SAVE_PATH = '../+llm/images/llama3/1'
 

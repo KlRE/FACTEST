@@ -8,7 +8,7 @@ from prompts.get_prompts import PromptStrategy
 
 def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, description="", model='mistral-nemo'):
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    path = f"./experiments/{current_time}"
+    path = f"./experiments/{prompting_strat.value}/{current_time}"
     os.makedirs(path, exist_ok=True)
     log_results_file = open(f"{path}/log_results.txt", "a")
     log_results_file.write(f"Experiment: {description}\n")
@@ -24,4 +24,4 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
 
 
 if __name__ == "__main__":
-    run_experiment(description="First experiment", model='mistral-nemo')
+    run_experiment(PromptStrategy.STEP_BY_STEP, description="First experiment", model='mistral-nemo')

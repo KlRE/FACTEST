@@ -39,7 +39,7 @@ class StepByStepPrompt(PathPrompter):
 """
         if intersecting:
             feedback_prompt_2 = f"""
-    **Task** Modify the last waypoint (currently {path[-1]}) so that the final segment does not intersect any obstacles and ends within the goal set. Do not add any waypoints to the array. The length of the array should be {len(path)} after correction. Since we are moving step-by-step, ensure the new waypoint remains close to the previous waypoint, making small, incremental adjustments while considering the goal set.
+    **Task** Modify the last waypoint (currently {path[-1]}) so that the final segment does not intersect any obstacles and ends within the goal set. Do not add any waypoints to the array. The length of the array should be {len(path)} after correction. Since we are moving step-by-step, make the new waypoint eihter closer to the previous waypoint ({path[-2]}) or change the path direction to avoid collision with the obstacle. Make smaller, incremental adjustments while considering the goal set.
     **Obstacle Avoidance**: Set the new waypoint to avoid intersecting obstacles. 
     **Segment Integrity:** Ensure that the entire segment from {path[-2]} to the new last waypoint does not intersect any obstacles. The path should be valid for all segments between waypoints.    
     **Avoid Direct Placement:** Do not place the last waypoint directly into the goal set. Instead, adjust it step-by-step while ensuring it avoids obstacles and finally ends within the goal set. Make sure to keep the adjustments small and gradual, avoiding large leaps. The goal is to move carefully, avoiding obstacles and gradually approaching the goal over multiple adjustments.   
@@ -52,14 +52,14 @@ class StepByStepPrompt(PathPrompter):
         else:
             self.expected_length += 1
             feedback_prompt_2 = f"""
-    **Task** Add one (1) new waypoint to the end of your current array of waypoints. So the new path will be of length {len(path) + 1} with a new waypoint at the end. Since we are moving step-by-step, ensure the new waypoint remains close to the previous waypoint, making small, incremental adjustments while considering the goal set.
+    **Task** Add one (1) new waypoint to the end of your current array of waypoints. So the new path will be of length {len(path) + 1} with a new waypoint at the end. Since we are moving step-by-step, ensure the new waypoint remains close to the previous waypoint, making small, incremental adjustments.
     **Obstacle Avoidance:** Set the new waypoint to avoid intersecting obstacles. 
     **Segment Integrity:** Ensure that the entire segment from {path[-1]} to the new last waypoint does not intersect any obstacles. The path should be valid for all segments between waypoints.    
     **Avoid Direct Placement:** Do not place the last waypoint directly into the goal set. Instead, adjust it step-by-step while ensuring it avoids obstacles and finally ends within the goal set. Make sure to keep the adjustments small and gradual, avoiding large leaps. The goal is to move carefully, avoiding obstacles and gradually approaching the goal over multiple adjustments.   
     **Constraints:** Do not add or remove any waypoints; only adjust the last waypoint.
         """
 
-        return feedback_prompt_1 + feedback_prompt_2
+        return feedback_prompt_1 + feedback_prompt_2 + f"\nYou are allowed to reason about the path."
 
     def get_init_instruction(self) -> str:
         init_prompt = """
