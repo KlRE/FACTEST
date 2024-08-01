@@ -7,6 +7,28 @@ class StepByStepPrompt(PathPrompter):
     current_path = []
     expected_length = 1
 
+    def get_task_description(self):
+        task_description = f"""
+        # Motion Planning Task
+        ## Goal: Iteratively plan a path prompt by prompt that starts in the start set, finally ends in the goal set, and avoids obstacles.
+
+        ## Path Requirements
+            Waypoints: The path should be represented as an array of waypoints and the path will be constructed by connecting these waypoints linearly.
+            Non-Crossing: Ensure the path and especially the linearly connected segments do not cross any obstacles.
+            Start and End: The path must start within the start set and end in the goal set.
+            """
+        return task_description
+
+    def get_init_instruction(self) -> str:
+        init_prompt = """
+    ## Instructions
+        Path Array: Output the first waypoint of the path. So, an array consisting of one waypoint.
+        Start: The path must begin at any point within the start set.
+        Obstacle Avoidance: Verify that the point does not intersect with any obstacles.
+        No code: Do not include any code in your response and do not try solve this with an algorithm.
+            """
+        return init_prompt.format(Theta=self.Theta, G=self.G, O=self.O)
+
     def get_feedback(self, path: List[Tuple], intersections, starts_in_init: bool, ends_in_goal: bool) -> str:
         obstacle_feedback, intersecting = self.obstacle_feedback(intersections, path)
 
@@ -61,16 +83,6 @@ class StepByStepPrompt(PathPrompter):
 
         return feedback_prompt_1 + feedback_prompt_2 + f"\nYou are allowed to reason about the path."
 
-    def get_init_instruction(self) -> str:
-        init_prompt = """
-## Instructions
-    Path Array: Output the first waypoint of the path. So, an array consisting of one waypoint.
-    Start: The path must begin at any point within the start set.
-    Obstacle Avoidance: Verify that the point does not intersect with any obstacles.
-    No code: Do not include any code in your response and do not try solve this with an algorithm.
-        """
-        return init_prompt.format(Theta=self.Theta, G=self.G, O=self.O)
-
     def parse_response(self, response):
         path = super().parse_response(response)
         if len(path) != self.expected_length:
@@ -94,4 +106,4 @@ if __name__ == "__main__":
     print(prompter.get_feedback(path=path, obstacle_feedback="obstacle_feedback", starts_in_init=True,
                                 ends_in_goal=True))
     print(prompter.get_init_instruction())
-    print(prompter.get_task_description())
+    print(prompter.get_task_data())

@@ -27,6 +27,16 @@ class FullPathPrompt(PathPrompter):
     No code: Do not include any code in your response and do not try solve this with an algorithm.
     """
 
+    task_description = f"""
+# Motion Planning Task
+## Goal: Come up with a path that starts in the start set, ends in the goal set, and avoids obstacles.
+
+## Path Requirements
+    Waypoints: The path should be represented as an array of waypoints and the path will be constructed by connecting these waypoints linearly.
+    Non-Crossing: Ensure the path and especially the linearly connected segments do not cross any obstacles.
+    Start and End: The path must start within the start set and end in the goal set.
+    """
+
     def get_feedback(self, path: List[Tuple], intersections, starts_in_init: bool, ends_in_goal: bool) -> str:
         obstacle_feedback, intersecting = self.obstacle_feedback(intersections, path)
 
@@ -54,6 +64,9 @@ class FullPathPrompt(PathPrompter):
     def get_init_instruction(self) -> str:
         return self.init_prompt.format(Theta=self.Theta, G=self.G, O=self.O)
 
+    def get_task_description(self):
+        return self.task_description
+
 
 if __name__ == "__main__":
     from prompts.Prompter import Model
@@ -71,4 +84,4 @@ if __name__ == "__main__":
     print(prompter.get_feedback(path=path, obstacle_feedback="obstacle_feedback", starts_in_init=True,
                                 ends_in_goal=True))
     print(prompter.get_init_instruction())
-    print(prompter.get_task_description())
+    print(prompter.get_task_data())

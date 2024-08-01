@@ -55,6 +55,13 @@ class Prompter(ABC):
         pass
 
     @abstractmethod
+    def get_task_description(self):
+        """
+        Get the task description for the given environment
+        """
+        pass
+
+    @abstractmethod
     def parse_response(self, response: str):
         """
         Parse the response
@@ -110,11 +117,12 @@ class Prompter(ABC):
         :return: Initial prompt
         """
         task_desc = self.get_task_description()
+        task_data = self.get_task_data()
         init_prompt = self.get_init_instruction()
         path_format = self.get_path_output_format()
-        return task_desc + init_prompt + path_format
+        return task_desc + task_data + init_prompt + path_format
 
-    def get_task_description(self):
+    def get_task_data(self):
         """
         Get the task description for the given environment
         """
@@ -126,14 +134,6 @@ class Prompter(ABC):
             O = o
 
         task_description = f"""
-# Motion Planning Task
-## Goal: Come up with a path that starts in the start set, ends in the goal set, and avoids obstacles.
-
-## Path Requirements
-    Waypoints: The path should be represented as an array of waypoints and the path will be constructed by connecting these waypoints linearly.
-    Non-Crossing: Ensure the path and especially the linearly connected segments do not cross any obstacles.
-    Start and End: The path must start within the start set and end in the goal set.
-
 ## Provided Data
     Start Position (Rectangular Set): (xmin, xmax, ymin, ymax) = {self.Theta}
         Note: You can choose any point within this rectangle to start the path.
@@ -179,10 +179,11 @@ class PathPrompter(Prompter, ABC):
         :param ends_in_goal: Ends in goal set
         """
         task_desc = self.get_task_description()
+        task_data = self.get_task_data()
         feedback = self.get_feedback(path, intersections, starts_in_init, ends_in_goal)
         path_format = self.get_path_output_format()
 
-        return task_desc + feedback + path_format
+        return task_desc + task_data + feedback + path_format
 
     def parse_response(self, response):
         """
@@ -265,7 +266,7 @@ if __name__ == "__main__":
     print(prompter.get_feedback(path=path, obstacle_feedback="obstacle_feedback", starts_in_init=True,
                                 ends_in_goal=True))
     print(prompter.get_init_instruction())
-    print(prompter.get_task_description())
+    print(prompter.get_task_data())
     prompter = Prompter.from_Prompt_Strategy(PromptStrategy.STEP_BY_STEP, Model.LLAMA3_8b, Theta, G, O, workspace)
     print(prompter.get_init_prompt())
     print(prompter.get_feedback_prompt(path=path, obstacle_feedback="obstacle_feedback", starts_in_init=True,
