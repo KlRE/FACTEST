@@ -1,6 +1,7 @@
 from typing import List, Tuple
 
 from prompts.Prompter import PathPrompter
+from prompts.examples import full_path_ex
 
 
 class FullPathPrompt(PathPrompter):
@@ -33,7 +34,7 @@ class FullPathPrompt(PathPrompter):
 
 ## Path Requirements
     Waypoints: The path should be represented as an array of waypoints and the path will be constructed by connecting these waypoints linearly.
-    Non-Crossing: Ensure the path and especially the linearly connected segments do not cross any obstacles.
+    Non-Crossing: Ensure the path and especially the linearly connected segments do not cross any obstacles. Make sure to keep a distance from the obstacles, because touching the obstacles is considered as crossing.
     Start and End: The path must start within the start set and end in the goal set.
     """
 
@@ -66,6 +67,14 @@ class FullPathPrompt(PathPrompter):
 
     def get_task_description(self):
         return self.task_description
+
+    def get_init_prompt(self):
+        return super().get_init_prompt() + full_path_ex()
+
+    def get_feedback_prompt(self, path: List[Tuple], intersections, starts_in_init: bool,
+                            ends_in_goal: bool):
+        return super().get_feedback_prompt(path=path, intersections=intersections, starts_in_init=starts_in_init,
+                                           ends_in_goal=ends_in_goal) + full_path_ex()
 
 
 if __name__ == "__main__":
