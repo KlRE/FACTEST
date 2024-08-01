@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import time
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import List, Tuple, Any
@@ -15,6 +16,7 @@ class Model(Enum):
     MISTRAL_NEMO_12b = 'mistral-nemo'
     LLAMA3_1_8b_Groq = 'llama-3.1-8b-instant'
     LLAMA3_1_70b_Groq = 'llama-3.1-70b-versatile'
+    LLAMA3_70b_Groq = 'llama3-70b-8192'
 
 
 class PromptStrategy(Enum):
@@ -94,7 +96,8 @@ class Prompter(ABC):
         if self.model == Model.LLAMA3_8b or self.model == Model.MISTRAL_NEMO_12b:
             return ollama.generate(model=self.model.value, prompt=prompt)['response']
 
-        elif self.model == Model.LLAMA3_1_8b_Groq or self.model == Model.LLAMA3_1_70b_Groq:
+        elif self.model == Model.LLAMA3_1_8b_Groq or self.model == Model.LLAMA3_1_70b_Groq or self.model == Model.LLAMA3_70b_Groq:
+            time.sleep(3)
             chat_completion = self.client.chat.completions.create(
                 messages=[
                     {
@@ -172,6 +175,12 @@ class Prompter(ABC):
         obstacles = {O}
     """
         return task_description
+
+    def get_example_solution(self):
+        """
+        Get the example solution for the task
+        """
+        pass
 
 
 class PathPrompter(Prompter, ABC):
