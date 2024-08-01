@@ -14,7 +14,7 @@ class Model(Enum):
 
 class PromptStrategy(Enum):
     FULL_PATH = 'full_path'
-    STEP_BY_STEP = 'step_by_step',
+    STEP_BY_STEP = 'step_by_step'
 
     @staticmethod
     def from_str(label):
