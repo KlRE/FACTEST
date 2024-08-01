@@ -1,15 +1,20 @@
 import logging
+import os
 import re
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import List, Tuple, Any
 
 import ollama
+from dotenv import load_dotenv
+from groq import Groq
 
 
 class Model(Enum):
     LLAMA3_8b = 'llama'
     MISTRAL_NEMO_12b = 'mistral-nemo'
+    LLAMA3_1_8b_Groq = 'llama-3.1-8b-instant'
+    LLAMA3_1_70b_Groq = 'llama-3.1-70b-versatile'
 
 
 class PromptStrategy(Enum):
@@ -37,9 +42,13 @@ class Prompter(ABC):
         :param workspace: Workspace
         """
         if isinstance(model, Model):
-            self.model = model.value
+            self.model = model
         else:
             raise ValueError("Model must be of type Model Enum")
+
+        if model == Model.LLAMA3_1_8b_Groq or model == Model.LLAMA3_1_70b_Groq:
+            load_dotenv()
+            self.client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
         self.Theta = Theta
         self.G = G
@@ -78,6 +87,26 @@ class Prompter(ABC):
         """
         pass
 
+    def _prompt_model(self, prompt: str):
+        """
+        Prompt the model depending on the model type
+        """
+        if self.model == Model.LLAMA3_8b or self.model == Model.MISTRAL_NEMO_12b:
+            return ollama.generate(model=self.model.value, prompt=prompt)['response']
+
+        elif self.model == Model.LLAMA3_1_8b_Groq or self.model == Model.LLAMA3_1_70b_Groq:
+            chat_completion = self.client.chat.completions.create(
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt,
+                    }
+                ],
+                model=self.model.value,
+            )
+
+            return chat_completion.choices[0].message.content
+
     def prompt_model(self, prompt: str, max_attempts=10, log_message='Prompting model') -> Tuple[bool, Any]:
         """
         Prompt the model with the given prompt and parse the response
@@ -89,18 +118,18 @@ class Prompter(ABC):
         successful = False
         logging.info(log_message)
         logging.info(prompt)
-        response = ollama.generate(model=self.model, prompt=prompt)
-        logging.info(response['response'])
+        response = self._prompt_model(prompt)
+        logging.info(response)
         for i in range(max_attempts):
             try:
-                parsed_response = self.parse_response(response['response'])
+                parsed_response = self.parse_response(response)
                 logging.info(f'Parsed response: {parsed_response}')
                 successful = True
                 return successful, parsed_response
             except Exception as e:
                 logging.warning(f"Failed to parse response because of Exception {e} Trying attempt {i + 1}")
-                response = ollama.generate(model=self.model, prompt=prompt)
-                logging.info(response['response'])
+                response = self._prompt_model(prompt)
+                logging.info(response)
         return successful, None
 
     def prompt_init(self):
@@ -218,9 +247,7 @@ class PathPrompter(Prompter, ABC):
         """
         return """
 ## Path Format:
-    Provide the new improved path as an array of waypoints.
-
-    Example Path Output:
+    Provide the new path as an array of waypoints in the following format:
     new_path = [
         (waypoint_x1, waypoint_y1),    
         ...,
