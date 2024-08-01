@@ -9,13 +9,13 @@ class StepByStepPrompt(PathPrompter):
 
     def get_task_description(self):
         task_description = f"""
-        # Motion Planning Task
-        ## Goal: Iteratively plan a path prompt by prompt that starts in the start set, finally ends in the goal set, and avoids obstacles.
+# Motion Planning Task
+## Goal: Iteratively plan a path prompt by prompt that starts in the start set, finally ends in the goal set, and avoids obstacles.
 
-        ## Path Requirements
-            Waypoints: The path should be represented as an array of waypoints and the path will be constructed by connecting these waypoints linearly.
-            Non-Crossing: Ensure the path and especially the linearly connected segments do not cross any obstacles.
-            Start and End: The path must start within the start set and end in the goal set.
+## Path Requirements
+    Waypoints: The path should be represented as an array of waypoints and the path will be constructed by connecting these waypoints linearly.
+    Non-Crossing: Ensure the path and especially the linearly connected segments do not cross any obstacles.
+    Start and End: The path must start within the start set and end in the goal set.
             """
         return task_description
 
@@ -57,8 +57,7 @@ class StepByStepPrompt(PathPrompter):
 
     
 ## Instructions for Correction:
-    **No code**: Do not include any code in your response.
-"""
+    **No code**: Do not include any code in your response."""
         if intersecting:
             feedback_prompt_2 = f"""
     **Task** Modify the last waypoint (currently {path[-1]}) so that the final segment does not intersect any obstacles and ends within the goal set. Do not add any waypoints to the array. The length of the array should be {len(path)} after correction. Since we are moving step-by-step, make the new waypoint either much closer to the previous waypoint ({path[-2]}) or change the path direction to avoid collision with the obstacle. Make smaller, incremental adjustments.
@@ -88,6 +87,20 @@ class StepByStepPrompt(PathPrompter):
         if len(path) != self.expected_length:
             raise ValueError(f"Expected path of length {self.expected_length}, got path of length {len(path)}")
         return path
+
+    def get_path_output_format(self):
+        """
+        Get the output format for the task
+        :return: Output format
+        """
+        more_waypoints = "\n...,\n(waypoint_xn, waypoint_yn)\n" if self.expected_length > 1 else ""
+        return f"""
+## Path Format:
+    Provide the new path as an array of waypoint{"s" if self.expected_length > 1 else ""} in the following format:
+    new_path = [
+        (waypoint_x1, waypoint_y1),{more_waypoints}      
+    ]
+    """
 
 
 if __name__ == "__main__":
