@@ -1,3 +1,4 @@
+import argparse
 import os
 
 from import_env import Env
@@ -26,4 +27,15 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
 
 
 if __name__ == "__main__":
-    run_experiment(PromptStrategy.STEP_BY_STEP, description="First experiment", model=Model.MISTRAL_NEMO_12b)
+    parser = argparse.ArgumentParser(description='Run an iterative prompt experiment.')
+    parser.add_argument('--prompting_strat', type=PromptStrategy, choices=list(PromptStrategy),
+                        default=PromptStrategy.FULL_PATH, help='Prompt strategy to use.')
+    parser.add_argument('--num_iterations', type=int, default=30, help='Number of iterations to run.')
+    parser.add_argument('--description', type=str, default="", help='Description of the experiment.')
+    parser.add_argument('--model', type=Model, choices=list(Model), default=Model.MISTRAL_NEMO_12b,
+                        help='Model to use for the experiment.')
+
+    args = parser.parse_args()
+
+    run_experiment(prompting_strat=args.prompting_strat, num_iterations=args.num_iterations,
+                   description=args.description, model=args.model)

@@ -2,7 +2,6 @@ from enum import Enum
 import importlib
 
 
-# Step 1: Define an enum for the environments
 class Env(Enum):
     BOX = 'box'
     BOX_BOUNDARY = 'box_boundary'
@@ -15,8 +14,10 @@ class Env(Enum):
     SPIRAL = 'spiral'
     WALL = 'wall'
 
+    def __str__(self):
+        return self.value
 
-# Step 2: Create a dictionary mapping enum values to module paths
+
 env_modules = {
     Env.BOX: 'envs.box',
     Env.BOX_BOUNDARY: 'envs.box_boundary',
@@ -31,7 +32,6 @@ env_modules = {
 }
 
 
-# Step 3: Function to import the necessary modules dynamically
 def import_environment(env_inp):
     try:
         if isinstance(env_inp, str):

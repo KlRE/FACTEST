@@ -22,6 +22,9 @@ class Model(Enum):
     GEMINI_1_5_PRO = 'gemini-1.5-pro'
     GEMINI_1_5_FLASH = 'gemini-1.5-flash'
 
+    def __str__(self):
+        return self.value
+
 
 class PromptStrategy(Enum):
     FULL_PATH = 'full_path'
@@ -33,6 +36,9 @@ class PromptStrategy(Enum):
             if prompt.value == label:
                 return prompt
         raise ValueError(f"Invalid label: {label}")
+
+    def __str__(self):
+        return self.value
 
 
 class Prompter(ABC):
