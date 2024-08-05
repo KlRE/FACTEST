@@ -60,7 +60,7 @@ class StepByStepPrompt(PathPrompter):
     **No code**: Do not include any code in your response."""
         if intersecting:
             feedback_prompt_2 = f"""
-    **Task** Modify the last waypoint (currently {path[-1]}) so that the final segment does not intersect any obstacles and ends within the goal set. Do not add any waypoints to the array. The length of the array should be {len(path)} after correction. Since we are moving step-by-step, make the new waypoint either much closer to the previous waypoint ({path[-2]}) or change the path direction to avoid collision with the obstacle. Make smaller, incremental adjustments.
+    **Task** Modify the last waypoint (currently {path[-1]}) so that the final segment does not intersect any obstacles and ends within the goal set. Do not add any waypoints to the array. The length of the array should be {len(path)} after correction. Since we are moving step-by-step, make the new waypoint either closer to the previous waypoint ({path[-2]}) or change the path direction to avoid collision with the obstacle.
     **Obstacle Avoidance**: Set the new waypoint to avoid intersecting obstacles. 
     **Segment Integrity:** Ensure that the entire segment from {path[-2]} to the new last waypoint does not intersect any obstacles. The path should be valid for all segments between waypoints.    
     **Avoid Direct Placement:** Do not place the last waypoint directly into the goal set. Instead, adjust it step-by-step while ensuring it avoids obstacles and finally ends within the goal set. Make sure to keep the adjustments small and gradual, avoiding large leaps. The goal is to move carefully, avoiding obstacles and gradually approaching the goal over multiple adjustments.   
