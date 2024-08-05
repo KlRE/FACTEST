@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import re
@@ -9,6 +10,7 @@ from typing import List, Tuple, Any
 import ollama
 from dotenv import load_dotenv
 from groq import Groq
+from supabase import create_client
 
 
 class Model(Enum):
@@ -17,6 +19,8 @@ class Model(Enum):
     LLAMA3_1_8b_Groq = 'llama-3.1-8b-instant'
     LLAMA3_1_70b_Groq = 'llama-3.1-70b-versatile'
     LLAMA3_70b_Groq = 'llama3-70b-8192'
+    GEMINI_1_5_PRO = 'gemini-1.5-pro'
+    GEMINI_1_5_FLASH = 'gemini-1.5-flash'
 
 
 class PromptStrategy(Enum):
@@ -51,6 +55,11 @@ class Prompter(ABC):
         if model == Model.LLAMA3_1_8b_Groq or model == Model.LLAMA3_1_70b_Groq:
             load_dotenv()
             self.client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+        elif model == Model.GEMINI_1_5_PRO or model == Model.GEMINI_1_5_FLASH:
+            load_dotenv()
+            url = os.environ.get("SUPABASE_URL")
+            key = os.environ.get("SUPABASE_KEY")
+            self.client = create_client(url, key)
 
         self.Theta = Theta
         self.G = G
@@ -109,6 +118,19 @@ class Prompter(ABC):
             )
 
             return chat_completion.choices[0].message.content
+
+        elif self.model == Model.GEMINI_1_5_PRO or self.model == Model.GEMINI_1_5_FLASH:
+            time.sleep(6)
+            response = self.client.functions.invoke(
+                "prompt",
+                invoke_options={
+                    "headers": {
+                        "Content-Type": "application/json",
+                        "x-region": "us-west-1",
+                    },
+                    "body": {"secret": "ButtrFly", "prompt": prompt}}
+            )
+            return json.loads(response)["candidates"][0]["content"]["parts"][0]["text"]
 
     def prompt_model(self, prompt: str, max_attempts=10, log_message='Prompting model') -> Tuple[bool, Any]:
         """
