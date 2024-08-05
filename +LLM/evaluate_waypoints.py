@@ -3,23 +3,15 @@ import sys, os
 currFile = os.path.abspath(__file__)
 factestPath = currFile.replace('/+LLM/evaluate_waypoints.py', '/factest/synthesis')
 sys.path.append(factestPath)
-
+factestPath2 = currFile.replace('/+LLM/evaluate_waypoints.py', '')
+sys.path.append(factestPath2)
 from factest.synthesis.factest_base_z3 import FACTEST_Z3
 import matplotlib.pyplot as plt
 from factest.plotting.plot_polytopes import plotPoly
 
 SAVE_PATH = '../+llm/images/llama3/1'
 
-path = [
-    (0.5, 3.5),  # Waypoint 1 starts in start set
-    (1.5, 3.5),  # Waypoint 2 changes direction to avoid obstacles
-    (2.5, 3.5),  # Waypoint 3 continues in a straight line
-    (2.5, 2.5),  # Waypoint 4 turns down to avoid obstacles
-    (3.5, 2.5),  # Waypoint 5 moves right
-    (3.5, 3.5),  # Waypoint 6 moves up
-    (4.0, 3.8),  # Waypoint 7 adjusts to avoid obstacles
-    (5.5, 4.2)  # Adjusted last waypoint within the goal set and avoiding obstacles
-]
+new_path = [(2.0, 2.0), (5.0, 2.0), (7.5, 2.0), (8.0, 2.0), (8.6, 9.0)]
 
 
 # path = [(0.5, 3.5), (1.5, 3.5), (2.5, 3.5), (2.5, 2.5), (3.5, 2.5), (3.5, 3.0), (5.0, 5.0)] leads to incorrect collision detection todo
@@ -68,7 +60,5 @@ def evaluate_waypoints(path, SAVE_PATH, Theta, G, O, workspace, iteration, save=
 if __name__ == "__main__":
     from import_env import import_environment
 
-    Theta, G, O, workspace = import_environment('maze_2d')
-    feedback, obs_f, s, st, e = evaluate_waypoints(path, SAVE_PATH, Theta, G, O, workspace, 0, save=False)
-    print(feedback)
-    print(obs_f)
+    Theta, G, O, workspace = import_environment('box')
+    intersections, succ, si, eg = evaluate_waypoints(new_path, SAVE_PATH, Theta, G, O, workspace, 1)
