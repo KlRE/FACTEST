@@ -23,14 +23,6 @@ def evaluate_waypoints(path, SAVE_PATH, Theta, G, O, workspace, iteration, save=
 
     intersections, successful, starts_in_init, ends_in_goal = FACTEST_prob.evaluate_waypoints(xref)
 
-    # if successful:
-    #     feedback = obs_feedback
-    # else:
-    #     new_Theta, new_G, new_O, new_workspace = convert_env_polytope_to_arrays(Theta, G, O, workspace)
-    #     feedback = get_feedback_prompt(prompt_strat, xref, obs_feedback, starts_in_init, ends_in_goal, new_Theta, new_G,
-    #                                    new_O,
-    #                                    new_workspace)
-
     xref_1 = [xval[0] for xval in xref]
     xref_2 = [xval[1] for xval in xref]
 
@@ -51,8 +43,6 @@ def evaluate_waypoints(path, SAVE_PATH, Theta, G, O, workspace, iteration, save=
         path_file.write(str(xref) + '\n')
 
     plt.show()
-
-    # append path to file
 
     return intersections, successful, starts_in_init, ends_in_goal
 

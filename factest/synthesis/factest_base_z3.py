@@ -198,7 +198,7 @@ class FACTEST_Z3():
                         row_sum_0 += xrefs[seg][j] * A_row[j]
                         row_sum_1 += xrefs[seg + 1][j] * A_row[j]
                     # print(type(row_sum_0), type(b_val))
-                    row_constraint = z3.And(bool(row_sum_0 >= b_val), bool(row_sum_1 >= b_val))
+                    row_constraint = z3.And(bool(row_sum_0 > b_val), bool(row_sum_1 > b_val))
                     obs_constraints.append(row_constraint)
 
                 self.s.add(z3.Or(tuple(obs_constraints)))
@@ -263,6 +263,9 @@ if __name__ == "__main__":
     b_unsafe3 = np.array([[-3], [7], [1], [0]])
     b_workspace = np.array([0, 7, 1, 7])
 
+    # b_goal = np.array([[-4], [5], [-4], [5]])
+    # b_unsafe1 = np.array([[-3], [3.5], [0], [5]])
+
     initial_poly = pc.Polytope(A, b_init)
     goal_poly = pc.Polytope(A, b_goal)
     unsafe_polys = [pc.Polytope(A, b_unsafe1), pc.Polytope(A, b_unsafe2), pc.Polytope(A, b_unsafe3)]
@@ -276,6 +279,7 @@ if __name__ == "__main__":
     # print(result_dict)
     # xref = [[0.5, 0.5], [0.0, 3.25], [3.75, 5.25], [4.5, 4.5]]
     # FACTEST_prob.evaluate_waypoints(xref)
+    print(xref)
     xref_1 = [xval[0] for xval in xref]
     xref_2 = [xval[1] for xval in xref]
 

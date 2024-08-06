@@ -29,6 +29,7 @@ class Model(Enum):
 class PromptStrategy(Enum):
     FULL_PATH = 'full_path'
     STEP_BY_STEP = 'step_by_step'
+    FULL_PATH_BREAK_POINTS = 'full_path_break_points'
 
     @staticmethod
     def from_str(label):

@@ -10,6 +10,7 @@ from prompts.Prompter import Model, PromptStrategy
 
 from convert_polytope_to_arrays import convert_env_polytope_to_arrays
 from import_env import import_environment, Env
+from prompts.full_path_break_points import FullPathBreakPointsPrompt
 from prompts.full_path_prompt import FullPathPrompt
 from prompts.step_by_step_prompt import StepByStepPrompt
 
@@ -44,7 +45,7 @@ def iterative_prompt(env: Env, prompting_strat: PromptStrategy, model=Model.LLAM
     """
     Iteratively prompts the user for feedback on a path until a successful path is found or the maximum number of iterations is reached.
     If continue_path is provided, the function will continue from the path in the file.
-    :param env_str: The environment to prompt for
+    :param env: The environment to prompt for
     :param prompting_strat: The prompting strategy to use
     :param num_iterations: The maximum number of iterations to run
     :param continue_path: The path to continue from if any or empty string
@@ -58,6 +59,8 @@ def iterative_prompt(env: Env, prompting_strat: PromptStrategy, model=Model.LLAM
         Prompter = FullPathPrompt(model, new_Theta, new_G, new_O, new_workspace)
     elif prompting_strat == PromptStrategy.STEP_BY_STEP:
         Prompter = StepByStepPrompt(model, new_Theta, new_G, new_O, new_workspace)
+    elif prompting_strat == PromptStrategy.FULL_PATH_BREAK_POINTS:
+        Prompter = FullPathBreakPointsPrompt(model, new_Theta, new_G, new_O, new_workspace, 2)
     else:
         raise ValueError(f"Invalid Prompt Strategy: {prompting_strat}")
 
