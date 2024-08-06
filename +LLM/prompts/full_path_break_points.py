@@ -13,16 +13,18 @@ class FullPathBreakPointsPrompt(PathPrompter):
     Start set: {start_feedback}
     Obstacle Avoidance (Rectangular Sets): (xmin, xmax, ymin, ymax): {obstacle_feedback}
     End set: {end_feedback}
+    Breakpoints: {instruct_breakpoints}
 
 ## Instructions for Correction
     No code: Do not include any code in your response.
-    {instruct_start}{instruct_end}{instruct_breakpoints}Obstacle Avoidance: Adjust the path to avoid intersecting obstacles. You may add waypoints at problematic waypoints to move around obstacles.
+    {instruct_start}{instruct_end}Obstacle Avoidance: Adjust the path to avoid intersecting obstacles. You may add waypoints at problematic waypoints to move around obstacles.
+    Breakpoints: Ensure the path passes through one of the breakpoints of each set.
     """
 
     init_prompt = """
 ## Instructions
     Path Array: Output the path as an array of waypoints.
-    {breakpoint_prompt}
+    Breakpoints: Choose one waypoint from each set of breakpoints. The path should pass through one of the breakpoints of each set.
     Start and End: The path must begin at any point within the start set and end at any point within the goal set.
     Obstacle Avoidance: Verify that the path does not intersect any obstacles.
     No code: Do not include any code in your response and do not try solve this with an algorithm.
@@ -100,6 +102,12 @@ class FullPathBreakPointsPrompt(PathPrompter):
                             ends_in_goal: bool):
         return super().get_feedback_prompt(path=path, intersections=intersections, starts_in_init=starts_in_init,
                                            ends_in_goal=ends_in_goal) + full_path_ex()
+
+    def get_task_data(self):
+        bp_str = "Breakpoints:\n"
+        for i, bp in enumerate(self.breakpoints):
+            bp_str += f"\t\tBreakpoint Set {i + 1}: {bp}\n"
+        return super().get_task_data() + f"{bp_str}"
 
     def find_breakpoints(self):
         """
