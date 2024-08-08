@@ -40,8 +40,8 @@ class FullPathBreakPointsPrompt(PathPrompter):
     Start and End: The path must start within the start set and end in the goal set.
     """
 
-    def __init__(self, model, Theta, G, O, workspace, num_sections=3):
-        super().__init__(model, Theta, G, O, workspace)
+    def __init__(self, model, Theta, G, O, workspace, use_history, num_sections=3):
+        super().__init__(model, Theta, G, O, workspace, use_history)
         self.num_sections = num_sections
         self.breakpoints = self.find_breakpoints()
         self.breakpoint_prompt = self.get_breakpoint_prompt()

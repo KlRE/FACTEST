@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 
 from import_env import Env
@@ -9,7 +10,7 @@ from prompts.Prompter import PromptStrategy, Model
 
 
 def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, description="",
-                   model=Model.MISTRAL_NEMO_12b):
+                   model=Model.MISTRAL_NEMO_12b, use_history=False):
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     path = f"./experiments/{prompting_strat.value}/{current_time}"
     os.makedirs(path, exist_ok=True)
@@ -19,7 +20,7 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
     log_results_file.write(f"Model: {model}\n")
     log_results_file.write("-----------------------------\n")
     for env in Env:
-        successful, num_iterations_ran = iterative_prompt(env, prompting_strat, model, num_iterations,
+        successful, num_iterations_ran = iterative_prompt(env, prompting_strat, model, num_iterations, use_history,
                                                           directory=path)
         log_results_file.write(f"{env.value}: {successful} after {num_iterations_ran} iterations\n")
 
@@ -31,6 +32,7 @@ if __name__ == "__main__":
     parser.add_argument('--prompting_strat', type=PromptStrategy, choices=list(PromptStrategy),
                         default=PromptStrategy.FULL_PATH, help='Prompt strategy to use.')
     parser.add_argument('--num_iterations', type=int, default=30, help='Number of iterations to run.')
+    parser.add_argument('--use_history', action='store_true', help='Use history in the prompter.')
     parser.add_argument('--description', type=str, default="", help='Description of the experiment.')
     parser.add_argument('--model', type=Model, choices=list(Model), default=Model.MISTRAL_NEMO_12b,
                         help='Model to use for the experiment.')
@@ -38,4 +40,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     run_experiment(prompting_strat=args.prompting_strat, num_iterations=args.num_iterations,
+                   use_history=args.use_history,
                    description=args.description, model=args.model)

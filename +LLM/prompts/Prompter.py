@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import re
+import textwrap
 import time
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -187,12 +188,11 @@ class Prompter(ABC):
         """
         Get the task description for the given environment
         """
-        if isinstance(self.O, list) and isinstance(self.O[0], tuple):
-            o = "[\n"
-            for i, obstacle in enumerate(self.O):
-                o += f"\t\t\t{obstacle},   # Obstacle {i + 1}\n"
-            o += "\t\t]"
-            O = o
+        assert isinstance(self.O, list) and isinstance(self.O[0], tuple)
+
+        o = ""
+        for i, obstacle in enumerate(self.O):
+            o += f"\t\t\tObstacle {i + 1}: {obstacle}\n"
 
         task_description = f"""
 ## Provided Data
@@ -201,7 +201,7 @@ class Prompter(ABC):
     Goal Position (Rectangular Set): (xmin, xmax, ymin, ymax) = {self.G}
         Note: You can choose any point within this rectangle to end the path.
     Obstacles (Rectangular Sets): (xmin, xmax, ymin, ymax):
-        obstacles = {O}
+{o}
     """
         return task_description
 
@@ -213,6 +213,14 @@ class Prompter(ABC):
 
 
 class PathPrompter(Prompter, ABC):
+    """Abstract class for LLM prompters which can implement different prompting strategies for path planning tasks."""
+
+    def __init__(self, model: Model, Theta, G, O, workspace, use_history=False):
+        super().__init__(model, Theta, G, O, workspace)
+        self.use_history = use_history
+        if use_history:
+            self.history = []
+
     @abstractmethod
     def get_feedback(self, path: List[Tuple], intersections, starts_in_init: bool, ends_in_goal: bool):
         """
@@ -249,8 +257,16 @@ class PathPrompter(Prompter, ABC):
         task_data = self.get_task_data()
         feedback = self.get_feedback(path, intersections, starts_in_init, ends_in_goal)
         path_format = self.get_path_output_format()
+        history_str = ""
+        if self.use_history:
+            if len(self.history) > 0:
+                for i, (path, feedback) in enumerate(self.history):
+                    history_str += f"\n\n###Attempt {i + 1}:\n{feedback}"
+                history_str = textwrap.indent(history_str, "    ")
+                history_str = "\n\n##History" + history_str
+            self.history.append((path, feedback))
 
-        return task_desc + task_data + feedback + path_format
+        return task_desc + task_data + feedback + path_format + history_str
 
     def parse_response(self, response):
         """
@@ -275,7 +291,8 @@ class PathPrompter(Prompter, ABC):
 
         # Convert the found coordinate pairs to a list of tuples
         path = [tuple(map(float, coord.strip('()').split(', '))) for coord in coordinates]
-
+        if len(path) == 0:
+            raise ValueError("No path found in response")
         return path
 
     def get_path_output_format(self):

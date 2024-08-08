@@ -40,6 +40,7 @@ def path_from_file(file_path):
 
 
 def iterative_prompt(env: Env, prompting_strat: PromptStrategy, model=Model.LLAMA3_8b, num_iterations=20,
+                     use_history=False,
                      continue_path="",
                      directory="./logs"):
     """
@@ -48,6 +49,7 @@ def iterative_prompt(env: Env, prompting_strat: PromptStrategy, model=Model.LLAM
     :param env: The environment to prompt for
     :param prompting_strat: The prompting strategy to use
     :param num_iterations: The maximum number of iterations to run
+    :param use_history: Use history for prompting
     :param continue_path: The path to continue from if any or empty string
     :param model: The model to use for prompting
     :param directory: The directory to save logs
@@ -56,11 +58,11 @@ def iterative_prompt(env: Env, prompting_strat: PromptStrategy, model=Model.LLAM
     new_Theta, new_G, new_O, new_workspace = convert_env_polytope_to_arrays(Theta, G, O, workspace)
     env_str = env.value
     if prompting_strat == PromptStrategy.FULL_PATH:
-        Prompter = FullPathPrompt(model, new_Theta, new_G, new_O, new_workspace)
+        Prompter = FullPathPrompt(model, new_Theta, new_G, new_O, new_workspace, use_history)
     elif prompting_strat == PromptStrategy.STEP_BY_STEP:
-        Prompter = StepByStepPrompt(model, new_Theta, new_G, new_O, new_workspace)
+        Prompter = StepByStepPrompt(model, new_Theta, new_G, new_O, new_workspace, use_history)
     elif prompting_strat == PromptStrategy.FULL_PATH_BREAK_POINTS:
-        Prompter = FullPathBreakPointsPrompt(model, new_Theta, new_G, new_O, new_workspace, 2)
+        Prompter = FullPathBreakPointsPrompt(model, new_Theta, new_G, new_O, new_workspace, use_history, 2)
     else:
         raise ValueError(f"Invalid Prompt Strategy: {prompting_strat}")
 
@@ -150,6 +152,7 @@ if __name__ == "__main__":
     parser.add_argument('--model', type=Model, choices=list(Model), default=Model.LLAMA3_8b,
                         help='Model to use for prompting')
     parser.add_argument('--num_iterations', type=int, default=20, help='Number of iterations to run')
+    parser.add_argument('--use_history', type=bool, help='Use history for prompting')
     parser.add_argument('--continue_path', type=str, default="",
                         help='The path to continue from if any or empty string')
     parser.add_argument('--directory', type=str, default="./logs", help='The directory to save logs')
@@ -157,4 +160,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     iterative_prompt(env=args.env, prompting_strat=args.prompting_strat, model=args.model,
-                     num_iterations=args.num_iterations, continue_path=args.continue_path, directory=args.directory)
+                     num_iterations=args.num_iterations, use_history=args.use_history, continue_path=args.continue_path,
+                     directory=args.directory)

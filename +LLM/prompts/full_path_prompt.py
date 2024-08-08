@@ -85,10 +85,11 @@ if __name__ == "__main__":
     O = [(2, 3, 2, 3), (1, 2, 1, 2)]
     workspace = (0, 5, 0, 5)
     path = [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5)]
+    intersections = []
 
     prompter = FullPathPrompt(Model.LLAMA3_8b, Theta, G, O, workspace)
     print(prompter.get_init_prompt())
-    print(prompter.get_feedback_prompt(path=path, obstacle_feedback="obstacle_feedback", starts_in_init=True,
+    print(prompter.get_feedback_prompt(path=path, intersections=intersections, starts_in_init=True,
                                        ends_in_goal=True))
     print(prompter.get_feedback(path=path, obstacle_feedback="obstacle_feedback", starts_in_init=True,
                                 ends_in_goal=True))
