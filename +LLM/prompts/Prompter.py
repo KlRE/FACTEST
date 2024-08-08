@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import List, Tuple, Any
 
+import groq
 import ollama
 from dotenv import load_dotenv
 from groq import Groq
@@ -151,18 +152,19 @@ class Prompter(ABC):
         successful = False
         logging.info(log_message)
         logging.info(prompt)
-        response = self._prompt_model(prompt)
-        logging.info(response)
         for i in range(max_attempts):
             try:
+                response = self._prompt_model(prompt)
+                logging.info(response)
                 parsed_response = self.parse_response(response)
                 logging.info(f'Parsed response: {parsed_response}')
                 successful = True
                 return successful, parsed_response
+            except groq.RateLimitError as e:
+                logging.warning(f"Rate limit error: {e}.\n Trying again in 3 minutes")
+                time.sleep(180)
             except Exception as e:
                 logging.warning(f"Failed to parse response because of Exception {e} Trying attempt {i + 1}")
-                response = self._prompt_model(prompt)
-                logging.info(response)
         return successful, None
 
     def prompt_init(self):
@@ -255,18 +257,18 @@ class PathPrompter(Prompter, ABC):
         """
         task_desc = self.get_task_description()
         task_data = self.get_task_data()
-        feedback = self.get_feedback(path, intersections, starts_in_init, ends_in_goal)
+        feedback_str = self.get_feedback(path, intersections, starts_in_init, ends_in_goal)
         path_format = self.get_path_output_format()
         history_str = ""
         if self.use_history:
             if len(self.history) > 0:
                 for i, (path, feedback) in enumerate(self.history):
-                    history_str += f"\n\n###Attempt {i + 1}:\n{feedback}"
-                history_str = textwrap.indent(history_str, "    ")
-                history_str = "\n\n##History" + history_str
-            self.history.append((path, feedback))
+                    feedback = textwrap.indent(feedback, "\t")
+                    history_str += f"###Attempt {i + 1}:{feedback}\n"
+                history_str = "\n\n##History\n" + history_str
+            self.history.append((path, "\n".join(feedback_str.split("\n")[:-4])))
 
-        return task_desc + task_data + feedback + path_format + history_str
+        return task_desc + task_data + feedback_str + path_format + history_str
 
     def parse_response(self, response):
         """
