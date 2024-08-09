@@ -1,8 +1,7 @@
 # Libraries used:
 
 Everything has been developed with Python3.9
-and has been tested on
-<span style="color:red">MacOS Sonoma 14.4 and Ubuntu 18?</span> 
+and has been tested on Ubuntu 22.04.4 LTS
 
 ## General libraries
 
@@ -12,66 +11,91 @@ and has been tested on
 
 ## Libraries for FACTEST
 
-Depending on which version of FACTEST is used, three are different solvers and libraries which are required. 
+Depending on which version of FACTEST is used, three are different solvers and libraries which are required.
 We give a brief description of each version of FACTEST as well as the different libraries used for each version.
 
 ### Base FACTEST options
 
 This is the basic version of FACTEST which synthesizes controllers for agents with static reach-avoid specifications.
-A description of the reach-avoid problem and the basic algorithm can be found in the [original CAV 2020 FACTEST paper](https://link.springer.com/chapter/10.1007/978-3-030-53288-8_31).
+A description of the reach-avoid problem and the basic algorithm can be found in
+the [original CAV 2020 FACTEST paper](https://link.springer.com/chapter/10.1007/978-3-030-53288-8_31).
 This version of FACTEST has been implemented with three different solvers.
 
 *Choose one of the following*
+
 - [Z3](https://ericpony.github.io/z3py-tutorial/guide-examples.htm)
 - [yices2](https://github.com/SRI-CSL/yices2_python_bindings)
 - [Gurobi](https://www.gurobi.com/)
 
+### FACTEST + LLM
+
+Set the working directory to ./FACTEST/+LLM so that Python can find the necessary modules.
+It utilizes z3, so you need to install it.
+To test the functions you can either use FACTEST/+LLM/iterative_prompt.py or FACTEST/+LLM/run_experiment.
+Depending on the model you want to use, you have to either install ollama with the fitting model or put an API key into
+the .env file.
+To access llama-3.1-70b-versatile, I can give you the API key (erikbo.wu at gmail.com).
+Use `-h` to get more information on the arguments.
+Example code:
+```iterative_prompt.py --env maze_2d --prompting_strat full_path_valid_subpath --model llama-3.1-70b-versatile --num_iterations 30 --directory "./logs```
+
 ### Omega FACTEST options
 
-This is the omega-regular version of FACTEST which synthesizes controllers for agents with omega-regular specifications and static environments.
-A description of the omega-regular synthesis problem and Omega-FACTEST algorithm can be found in the omega-regular FACTEST paper.
+This is the omega-regular version of FACTEST which synthesizes controllers for agents with omega-regular specifications
+and static environments.
+A description of the omega-regular synthesis problem and Omega-FACTEST algorithm can be found in the omega-regular
+FACTEST paper.
 This version of FACTEST has been implemented using the Z3 solver and uses the Spot library to construct Büchi automaton.
 
 *The following are required*
+
 - [Z3](https://ericpony.github.io/z3py-tutorial/guide-examples.htm)
 - [Spot](https://spot.lre.epita.fr/)
 
 ### Dynamic FACTEST options
 
-This is the dynamic version of FACTEST which synthesizes controllers for agents in scenarios where the environments is dynamic or partially unknown.
+This is the dynamic version of FACTEST which synthesizes controllers for agents in scenarios where the environments is
+dynamic or partially unknown.
 The FACTEST algorithm is deployed in a receding horizon fashion.
-A description of the problem and Dynamic-FACTEST algorithm can be found in the [ADHS 2021 FACTEST paper](https://www.sciencedirect.com/science/article/pii/S2405896321012684).
+A description of the problem and Dynamic-FACTEST algorithm can be found in
+the [ADHS 2021 FACTEST paper](https://www.sciencedirect.com/science/article/pii/S2405896321012684).
 This version of FACTEST has been implemented using Gurobi.
 
 *The following are required*
+
 - [Gurobi](https://www.gurobi.com/)
 
 # Demos and tests
+
 To see if FACTEST is running properly on your machine, you can run the following scripts.
-To test the base version of FACTEST, we have provided the examples from the [original CAV 2020 FACTEST paper](https://link.springer.com/chapter/10.1007/978-3-030-53288-8_31),
+To test the base version of FACTEST, we have provided the examples from
+the [original CAV 2020 FACTEST paper](https://link.springer.com/chapter/10.1007/978-3-030-53288-8_31),
 which can be run using the following command:
+
 ```
 python3.9 demo/demo_cav20.py [model] [env] [--solver] [--segs] [--parts] [--print] [--plot]
 ```
-| Arg      | Description                    | Options |
-| -------- | ------------------------------ | ------- |
-| `model`  | agent model                    | `car` |
+
+| Arg      | Description                    | Options                   |
+|----------|--------------------------------|---------------------------|
+| `model`  | agent model                    | `car`                     |
 | `env`    | initial, goal, and unsafe sets | `maze_2d`, `scots_hscc16` |
-| `solver` | solver to be used with FACTEST | `z3`, `yices`, `gurobi` |
-| `segs`   | number of line segments        | any positive integer |
-| `parts`  | maximum partition depth        | any positive integer |
-| `print`  | print statements for FACTEST   | `True`, `False` |
-| `plot`   | plot the resulting solution    | `True`, `False` |
+| `solver` | solver to be used with FACTEST | `z3`, `yices`, `gurobi`   |
+| `segs`   | number of line segments        | any positive integer      |
+| `parts`  | maximum partition depth        | any positive integer      |
+| `print`  | print statements for FACTEST   | `True`, `False`           |
+| `plot`   | plot the resulting solution    | `True`, `False`           |
 
 <span style="color:red">TODO: We will also provide demos for Dynamic FACTEST and Omega FACTEST
 </span>
 
-
 # Using FACTEST
-Here, we provide a brief description on how to use {Base, Omega, Dynamic}-FACTEST.
-There are three main components to using FACTEST: (i) the agent model and tracking controller, (ii) the environment defined by a workspace and polytope regions, and (iii) the {Base, Omega, Dynamic}-FACTEST synthesis algorithm.
-In this section, we provide a tutorial on how each of these components works and how they are brought together to synthesize controllers.
 
+Here, we provide a brief description on how to use {Base, Omega, Dynamic}-FACTEST.
+There are three main components to using FACTEST: (i) the agent model and tracking controller, (ii) the environment
+defined by a workspace and polytope regions, and (iii) the {Base, Omega, Dynamic}-FACTEST synthesis algorithm.
+In this section, we provide a tutorial on how each of these components works and how they are brought together to
+synthesize controllers.
 
 ## Base-FACTEST
 
@@ -90,8 +114,8 @@ factest = FACTEST_yices(initial_poly, goal_poly, unsafe_polys, model = None, wor
 factest = FACTEST_gurobi(initial_poly, goal_poly, unsafe_polys, model = None, workspace = None, seg_max = 3, part_max = 2, print_statements = True)
 ```
 
-| Arg                | Type              | Default | Description |
-| ------------------ | ----------------- | ------- | ----------- |
+| Arg                | Type              | Default | Description                                                       |
+|--------------------|-------------------|---------|-------------------------------------------------------------------|
 | `initial_poly`     | Polytope          |         | Set of possible initial positions for the agent                   |
 | `goal_poly`        | Polytope          |         | Set of possible positions which the agent must reach              |
 | `unsafe_polys`     | list of Polytopes |         | List of sets in the workspace that the agent must avoid           |
@@ -108,6 +132,7 @@ controllers = factest.run()
 ```
 
 The resulting controller is given in the following format:
+
 ```
 controllers = {controller_idx0 : {'init': Polytope,
                                   'xref': [[x0], [x1], ..]}, 
@@ -115,7 +140,8 @@ controllers = {controller_idx0 : {'init': Polytope,
                                    'xref': [[x0], [x1], ..]}, 
                 ...}
 ```
-where each controller index is a str, 
+
+where each controller index is a str,
 `'init'` returns the polytope region for which the controller is valid, and
 `'xref'` is the sequence of waypoints that the agent must track.
 
@@ -123,10 +149,11 @@ where each controller index is a str,
 
 There are two versions of omega-regular synthesis: Omega-FACTEST and Hybrid-FACTEST.
 Each version uses the base version of FACTEST.
-Omega-FACTEST finds the initial sets and transitions for which the omega-regular specifications can be satisfied. 
+Omega-FACTEST finds the initial sets and transitions for which the omega-regular specifications can be satisfied.
 It returns the sequence of waypoints for which the transitions can be simulated.
 Hybrid-FACTEST constructs a hybrid automaton which replicates the exact behavior of the agent.
 Both of these synthesis algorithms are built on top of a transition-based Büchi automaton.
+
 ### TBA synthesis
 
 A TBA is constructed from a linear temporal logic (LTL) formula defined over some atomic propositions (AP) or letters.
@@ -138,18 +165,18 @@ A TBA is constructed using the following command:
 disc_aut = buchi_from_ltl(ltl_formula, env)
 ```
 
-| Arg           | Type                                       | Default | Description |
-| ------------- | ------------------------------------------ | ------- | ----------- |
-| `ltl_formula` | str                                        |         | LTL specifications using Spot operators |
-| `env`         | dict (keys: label (str), entries: Polytope)|         | Polytopes and associated labels         |
+| Arg           | Type                                        | Default | Description                             |
+|---------------|---------------------------------------------|---------|-----------------------------------------|
+| `ltl_formula` | str                                         |         | LTL specifications using Spot operators |
+| `env`         | dict (keys: label (str), entries: Polytope) |         | Polytopes and associated labels         |
 
 A TBA has the following properties:
 
-| Property            | Type                                                     | Description |
-| ------------------- | -------------------------------------------------------- | ----------- |
+| Property            | Type                                                     | Description                                                                                    |
+|---------------------|----------------------------------------------------------|------------------------------------------------------------------------------------------------|
 | `buchi_states`      | list of str                                              | List of büchi automaton states                                                                 |
 | `buchi_inits`       | list of str                                              | List of possible initial states                                                                |
-| `buchi_AP`          | list of str                                              | List of AP                                                               |
+| `buchi_AP`          | list of str                                              | List of AP                                                                                     |
 | `buchi_alphabet`    | list of str                                              | List of letters which can label transitions (power set of AP)                                  |
 | `buchi_transitions` | dict (keys: letter (str), entries: list of tuples)       | Dictionary which maps each state to a list of possible transitions of the form (letter, state) |
 | `buchi_acceptances` | *not implemented*                                        | *not implemented*                                                                              |
@@ -164,27 +191,28 @@ It can be instantiated using the following command:
 omega_factest = omega_FACTEST(ltl_formula, env, model = None, workspace = None, seg_max = 3, part_max = 1, shrinking_constant = 0.1, max_shrinking_depth = 5, print_statements = False)
 ```
 
-| Arg                   | Type                                       | Default | Description |
-| --------------------- | ------------------------------------------ | ------- | ----------- |
-| `ltl_formula`         | str                                        |         | LTL specifications using Spot operators                           |
-| `env`                 | dict (keys: label (str), entries: Polytope)|         | Polytopes and associated labels                                   |
-| `model`               |                                            | `None`  | Agent and tracking controller dynamics                            |
-| `workspace`           | Polytope                                   | `None`  | *Optional*: Closed set of positions that the agent must remain in |
-| `seg_max`             | int                                        | `3`     | Maximum number of segments for the reference trajectories         |
-| `part_max`            | int                                        | `1`     | Maximum partition depth of the initial set                        |
-| `shrinking_constant`  | int                                        | `0.1`   | Amount the initial set is shrunk when controllers cannot be found |
-| `max_shrinking_depth` | int                                        | `5`     | *Optional*: Maximum number of times the initial set is shrunk     |
-| `print_statements`    | bool                                       | `False` | *Optional*: Turn print statements on or off                       |
+| Arg                   | Type                                        | Default | Description                                                       |
+|-----------------------|---------------------------------------------|---------|-------------------------------------------------------------------|
+| `ltl_formula`         | str                                         |         | LTL specifications using Spot operators                           |
+| `env`                 | dict (keys: label (str), entries: Polytope) |         | Polytopes and associated labels                                   |
+| `model`               |                                             | `None`  | Agent and tracking controller dynamics                            |
+| `workspace`           | Polytope                                    | `None`  | *Optional*: Closed set of positions that the agent must remain in |
+| `seg_max`             | int                                         | `3`     | Maximum number of segments for the reference trajectories         |
+| `part_max`            | int                                         | `1`     | Maximum partition depth of the initial set                        |
+| `shrinking_constant`  | int                                         | `0.1`   | Amount the initial set is shrunk when controllers cannot be found |
+| `max_shrinking_depth` | int                                         | `5`     | *Optional*: Maximum number of times the initial set is shrunk     |
+| `print_statements`    | bool                                        | `False` | *Optional*: Turn print statements on or off                       |
 
 The omega-FACTEST instance has all the same properties as the TBA, as well as the following additional properties:
 
-| Property                  | Type                                                             | Description |
-| --------------- | -------------------------------------------------------------------------- | ----------- |
-| `flow_cache`    | dict (keys: transition (str), entries: controller dict (from base FACTEST) | Maps each transition to controllers which simulate them |
+| Property        | Type                                                                       | Description                                                                                       |
+|-----------------|----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| `flow_cache`    | dict (keys: transition (str), entries: controller dict (from base FACTEST) | Maps each transition to controllers which simulate them                                           |
 | `init_sets`     | dict (keys: state (str), entries: Polytopes)                               | Maps each label to a set of initial positions for which controllers exist to simulate transitions |
-| `terminal_sets` | dict (keys: letter(str), entries: list of tuples (center, radius))         | Maps each label a set of positions where the agent will end |
+| `terminal_sets` | dict (keys: letter(str), entries: list of tuples (center, radius))         | Maps each label a set of positions where the agent will end                                       |
 
 The flow cache is of the following format:
+
 ```
 flow_cache = {transition0 : {controller_idx0 : {'init' : Polytope,
                                                  'xref' : [[x0], [x1], ..]},
@@ -200,47 +228,52 @@ An example run of the TBA can be obtained by running the following command:
 omega_run = omega_factest.exampleRun(num_cycles = 3)
 ```
 
-In practice run returned is finite, but the cycles can be repeated an inifinite number of times for omega-regular behavior.
+In practice run returned is finite, but the cycles can be repeated an inifinite number of times for omega-regular
+behavior.
 The run returned is a list which repeats the cycle the number of time specified by the user.
 
 ### Hybrid-FACTEST
 
-A hybrid automaton is constructed from an LTL formula defined over some AP, the environment, and some agent and tracking controller dynamics.
+A hybrid automaton is constructed from an LTL formula defined over some AP, the environment, and some agent and tracking
+controller dynamics.
 A hybrid automaton is constructed using the following command:
 
 ```
 hybrid_aut = hybrid_from_ltl(ltl_formula, env, model = None, workspace = None)
 ```
 
-| Arg           | Type                                       | Default | Description |
-| ------------- | ------------------------------------------ | ------- | ----------- |
-| `ltl_formula` | str                                        |         | LTL specifications using Spot operators                           |
-| `env`         | dict (keys: label (str), entries: Polytope)|         | Polytopes and associated labels                                   |
-| `model`       |                                            | `None`  | Agent and tracking controller dynamics                            |
-| `workspace`   | Polytope                                   | `None`  | *Optional*: Closed set of positions that the agent must remain in |
+| Arg           | Type                                        | Default | Description                                                       |
+|---------------|---------------------------------------------|---------|-------------------------------------------------------------------|
+| `ltl_formula` | str                                         |         | LTL specifications using Spot operators                           |
+| `env`         | dict (keys: label (str), entries: Polytope) |         | Polytopes and associated labels                                   |
+| `model`       |                                             | `None`  | Agent and tracking controller dynamics                            |
+| `workspace`   | Polytope                                    | `None`  | *Optional*: Closed set of positions that the agent must remain in |
 
 The hybrid automaton has all the same properties as the TBA, as well as the following additional properties.
 
-| Property                  | Type                                                 | Description |
-| ------------------------- | ---------------------------------------------------- | ----------- |
+| Property                  | Type                                                                                                                                               | Description                                                                                 |
+|---------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
 | `flows`                   | dict (keys: state (str), entries: dict (keys: letter (str), entries: dict (keys: ['init', 'xref'], entries: [Polytope, list of lists of floats]))) | Maps each state and transition label to an initial set partition and associated controllers |
-| `buchi_state_init_labels` | dict (keys: state (str), entries: list of Polytopes) | Maps each state to a set of initial positions the agent can take in that state       |
-| `transition_reqs`         | dict (keys: letter(str), entries: Polytope)          | Maps each transition label to a set of positions for which that transition can occur |
+| `buchi_state_init_labels` | dict (keys: state (str), entries: list of Polytopes)                                                                                               | Maps each state to a set of initial positions the agent can take in that state              |
+| `transition_reqs`         | dict (keys: letter(str), entries: Polytope)                                                                                                        | Maps each transition label to a set of positions for which that transition can occur        |
 
 A hybrid automaton simulates a TBA.
-The discrete states between the hybrid automaton and TBA are the same, and the "flow" or trajectory of an agent simulates a transition of the TBA.
+The discrete states between the hybrid automaton and TBA are the same, and the "flow" or trajectory of an agent
+simulates a transition of the TBA.
 
 ## Dynamic-FACTEST
 
-The dynamic version of FACTEST is similar to the base version of FACTEST; however, dynamic-FACTEST can handle obstacles defined in space-time.
-Instead of returning a sequence of waypoints that the agent must track, dynamic-FACTEST returns a sequence of time-stamped waypoints.
+The dynamic version of FACTEST is similar to the base version of FACTEST; however, dynamic-FACTEST can handle obstacles
+defined in space-time.
+Instead of returning a sequence of waypoints that the agent must track, dynamic-FACTEST returns a sequence of
+time-stamped waypoints.
 
 ```
 dynamic_factest = dynamic_FACTEST_gurobi(initial_poly, goal_poly, unsafe_polys, timed_unsafe_polys = [], dt = 1, max_length = 5, model=None, workspace=None, seg_max=6, part_max=2, print_statements=True)
 ```
 
-| Arg                  | Type              | Default | Description |
-| -------------------- | ----------------- | ------- | ----------- |
+| Arg                  | Type              | Default | Description                                                       |
+|----------------------|-------------------|---------|-------------------------------------------------------------------|
 | `initial_poly`       | Polytope          |         | Set of possible initial positions for the agent                   |
 | `goal_poly`          | Polytope          |         | Set of possible positions which the agent must reach              |
 | `unsafe_polys`       | list of Polytopes |         | List of sets in the workspace that the agent must avoid           |
@@ -257,12 +290,14 @@ dynamic_factest = dynamic_FACTEST_gurobi(initial_poly, goal_poly, unsafe_polys, 
 dynamic_factest.run()
 ```
 
-The resulting controller is given in the same format as base-FACTEST, however each `'xref'` is given as `[[x0,t0],[x1,t1], ...]`.
+The resulting controller is given in the same format as base-FACTEST, however each `'xref'` is given
+as `[[x0,t0],[x1,t1], ...]`.
 
 ## Agent and tracking controller
 
 The agent model encodes the agent and tracking controller dynamics.
-When creating an agent, the user must include a function `errBound` which takes in a polytope `init_poly` and a line segment number `i`.
+When creating an agent, the user must include a function `errBound` which takes in a polytope `init_poly` and a line
+segment number `i`.
 It should return the size of the error bound over segment `i`.
 An example can be seen below:
 
@@ -281,7 +316,8 @@ An actual example for different vehicles can be found in the `demo/models` folde
 ## Workspaces and polytope regions
 
 The workspace is the 2- or 3-dimensional physical space in which the agent lives.
-The polytope regions should be defined in this workspace with the only exception being the space-time polytopes used in dynamic-FACTEST.
+The polytope regions should be defined in this workspace with the only exception being the space-time polytopes used in
+dynamic-FACTEST.
 Polytopes can be plotted via the `plotPoly` and `plotPoly_3d` functions in `factest/plotting/plot_polytopes.py`.
 
 ```
@@ -289,18 +325,18 @@ plotPoly(poly, ax = None, color = 'red')
 plotPoly_3d(poly, ax = None, color='red')
 ```
 
-| Arg     | Type            | Default | Description |
-| ------- | --------------- | ------- | ---------------------- |
+| Arg     | Type            | Default | Description            |
+|---------|-----------------|---------|------------------------|
 | `poly`  | Polytope        |         | Polytope to be plotted |
 | `ax`    | matplotlib.axes | None    | Axes to plot `poly` on |
 | `color` | str             | 'red'   | Color to plot polytope |
 
-
 ## Tutorial: running simulations
 
-<span style="color:red">Tutorial needs to be fleshed out more</span> 
+<span style="color:red">Tutorial needs to be fleshed out more</span>
 
-We provide limited functionality in running simulations of the controllers synthesized; however, we provide a short walkthrough on how we simulated our demo results.
+We provide limited functionality in running simulations of the controllers synthesized; however, we provide a short
+walkthrough on how we simulated our demo results.
 In this tutorial, we simulate the Dubins car provided in `demo/models/dubins_car.py`.
 
 ### Base-FACTEST
@@ -358,7 +394,7 @@ states = model.run_simulation(xref,init_state,T)
 
 ### Omega-FACTEST
 
-<span style="color:red">This may change more...</span> 
+<span style="color:red">This may change more...</span>
 
 ```
 def run_omega_simulation(self, hybrid_aut, curr_state, vref = 1, num_cycles = 3):
