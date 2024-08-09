@@ -11,7 +11,14 @@ from factest.plotting.plot_polytopes import plotPoly
 
 SAVE_PATH = '../+llm/images/llama3/1'
 
-new_path = [(2.0, 2.0), (5.0, 2.0), (7.5, 2.0), (8.0, 2.0), (8.6, 9.0)]
+new_path = [
+    (0.5, 3.5),
+    (1.0, 3.5),
+    (1.5, 3.5),
+    (2.0, 3.5),
+    (2.5, 3.5),
+    (3.0, 3.5)
+]
 
 
 # path = [(0.5, 3.5), (1.5, 3.5), (2.5, 3.5), (2.5, 2.5), (3.5, 2.5), (3.5, 3.0), (5.0, 5.0)] leads to incorrect collision detection todo
@@ -50,5 +57,5 @@ def evaluate_waypoints(path, SAVE_PATH, Theta, G, O, workspace, iteration, save=
 if __name__ == "__main__":
     from import_env import import_environment
 
-    Theta, G, O, workspace = import_environment('box')
-    intersections, succ, si, eg = evaluate_waypoints(new_path, SAVE_PATH, Theta, G, O, workspace, 1)
+    Theta, G, O, workspace = import_environment('maze_2d')
+    intersections, succ, si, eg = evaluate_waypoints(new_path, SAVE_PATH, Theta, G, O, workspace, 1, save=False)

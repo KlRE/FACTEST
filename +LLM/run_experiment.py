@@ -18,6 +18,8 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
     log_results_file.write(f"Experiment: {description}\n")
     log_results_file.write(f"Number of iterations: {num_iterations}\n")
     log_results_file.write(f"Model: {model}\n")
+    log_results_file.write(f"Prompting strategy: {prompting_strat}\n")
+    log_results_file.write(f"Use history: {use_history}\n")
     log_results_file.write("-----------------------------\n")
     for env in Env:
         successful, num_iterations_ran = iterative_prompt(env, prompting_strat, model, num_iterations, use_history,

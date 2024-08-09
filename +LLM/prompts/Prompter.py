@@ -32,6 +32,7 @@ class PromptStrategy(Enum):
     FULL_PATH = 'full_path'
     STEP_BY_STEP = 'step_by_step'
     FULL_PATH_BREAK_POINTS = 'full_path_break_points'
+    FULL_PATH_VALID_SUBPATH = 'full_path_valid_subpath'
 
     @staticmethod
     def from_str(label):
@@ -115,7 +116,7 @@ class Prompter(ABC):
             return ollama.generate(model=self.model.value, prompt=prompt)['response']
 
         elif self.model == Model.LLAMA3_1_8b_Groq or self.model == Model.LLAMA3_1_70b_Groq or self.model == Model.LLAMA3_70b_Groq:
-            time.sleep(3)
+            time.sleep(4)
             chat_completion = self.client.chat.completions.create(
                 messages=[
                     {
@@ -217,7 +218,7 @@ class Prompter(ABC):
 class PathPrompter(Prompter, ABC):
     """Abstract class for LLM prompters which can implement different prompting strategies for path planning tasks."""
 
-    def __init__(self, model: Model, Theta, G, O, workspace, use_history=False):
+    def __init__(self, model: Model, Theta, G, O, workspace, use_history=False, ):
         super().__init__(model, Theta, G, O, workspace)
         self.use_history = use_history
         if use_history:
@@ -264,8 +265,8 @@ class PathPrompter(Prompter, ABC):
             if len(self.history) > 0:
                 for i, (path, feedback) in enumerate(self.history):
                     feedback = textwrap.indent(feedback, "\t")
-                    history_str += f"###Attempt {i + 1}:{feedback}\n"
-                history_str = "\n\n##History\n" + history_str
+                    history_str += f"### Attempt {i + 1}:{feedback}\n"
+                history_str = "\n\n## History\n" + history_str
             self.history.append((path, "\n".join(feedback_str.split("\n")[:-4])))
 
         return task_desc + task_data + feedback_str + path_format + history_str
@@ -327,7 +328,7 @@ class PathPrompter(Prompter, ABC):
                     f'\t\tSegment {i + 1} between points {path[i]} and {path[i + 1]} intersects with obstacle(s):')
                 for idx, obs in intersection:
                     obstacle_report.append(
-                        f"\t\tObstacle {idx + 1}: ({-obs.b[0]}, {obs.b[1]}, {-obs.b[2]}, {obs.b[3]})")
+                        f"\t\t\tObstacle {idx + 1}: ({-obs.b[0]}, {obs.b[1]}, {-obs.b[2]}, {obs.b[3]})")
 
         if len(obstacle_report) == 0:
             intersecting = False

@@ -12,6 +12,7 @@ from convert_polytope_to_arrays import convert_env_polytope_to_arrays
 from import_env import import_environment, Env
 from prompts.full_path_break_points import FullPathBreakPointsPrompt
 from prompts.full_path_prompt import FullPathPrompt
+from prompts.full_path_valid_path import FullPathValidPathPrompt
 from prompts.step_by_step_prompt import StepByStepPrompt
 
 
@@ -63,6 +64,8 @@ def iterative_prompt(env: Env, prompting_strat: PromptStrategy, model=Model.LLAM
         Prompter = StepByStepPrompt(model, new_Theta, new_G, new_O, new_workspace, use_history)
     elif prompting_strat == PromptStrategy.FULL_PATH_BREAK_POINTS:
         Prompter = FullPathBreakPointsPrompt(model, new_Theta, new_G, new_O, new_workspace, use_history, 2)
+    elif prompting_strat == PromptStrategy.FULL_PATH_VALID_SUBPATH:
+        Prompter = FullPathValidPathPrompt(model, new_Theta, new_G, new_O, new_workspace, use_history)
     else:
         raise ValueError(f"Invalid Prompt Strategy: {prompting_strat}")
 
@@ -103,7 +106,7 @@ def iterative_prompt(env: Env, prompting_strat: PromptStrategy, model=Model.LLAM
         )
         path = path_from_file(f"{log_directory}/path.txt")
         logging.info(f"Continuing from path: {path}")
-
+    path = [(0.5, 3.5), (2, 3.5)]
     for i in range(num_iterations):
         logging.info(f"Iteration {i + 1}")
         intersections, successful, starts_in_init, ends_in_goal = evaluate_waypoints(path, log_directory,
@@ -123,28 +126,6 @@ def iterative_prompt(env: Env, prompting_strat: PromptStrategy, model=Model.LLAM
 
 
 if __name__ == "__main__":
-    string = """
-     path = [
-        (-6.0, -4.0),
-        (+6.5, +3.75),
-        (7.0, 3.0)
-    ]
-
-# Explanation:
-- The path starts at the top-left corner of the start set to ensure it's within the specified rectangle.
-- It then moves diagonally upwards and rightwards to avoid Obstacle 1.
-- Finally, it moves horizontally to reach just outside Obstacle 5 and then vertically downwards to end inside the goal set."""
-    # string = """
-    # path = [
-    #     (2.0, 1.5),
-    #     (3.0, 2.5),      # Start just outside the obstacle on bottom edge
-    #     (4.0, 4.0),     # Move right and up to avoid obstacle
-    #     (6.0, 7.5),     # Continue right and up
-    #     (8.0, 9.0),
-    #     (8.5, 9.5)      # End in the goal set
-    # ]
-    # """
-
     parser = argparse.ArgumentParser(description='Run an iterative prompt experiment.')
     parser.add_argument('--env', type=Env, choices=list(Env), required=True, help='The environment to prompt for')
     parser.add_argument('--prompting_strat', type=PromptStrategy, choices=list(PromptStrategy),

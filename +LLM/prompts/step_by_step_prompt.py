@@ -60,8 +60,7 @@ class StepByStepPrompt(PathPrompter):
     **No code**: Do not include any code in your response."""
         if intersecting:
             feedback_prompt_2 = f"""
-    **Task** Modify the last waypoint (currently {path[-1]}) so that the final segment does not intersect any obstacles and ends within the goal set. Do not add any waypoints to the array. The length of the array should be {len(path)} after correction. Since we are moving step-by-step, make the new waypoint either closer to the previous waypoint ({path[-2]}) or change the path direction to avoid collision with the obstacle.
-    **Obstacle Avoidance**: Set the new waypoint to avoid intersecting obstacles. 
+    **Task** Modify the last waypoint (currently {path[-1]}) so that the final segment does not intersect any obstacles and ends within the goal set. Do not add any waypoints to the array. The length of the array should be {len(path)} after correction.
     **Segment Integrity:** Ensure that the entire segment from {path[-2]} to the new last waypoint does not intersect any obstacles. The path should be valid for all segments between waypoints.    
     **Avoid Direct Placement:** Do not place the last waypoint directly into the goal set. Instead, adjust it step-by-step while ensuring it avoids obstacles and finally ends within the goal set. Make sure to keep the adjustments small and gradual, avoiding large leaps. The goal is to move carefully, avoiding obstacles and gradually approaching the goal over multiple adjustments.   
     **Constraints:** Do not add or remove any waypoints; only adjust the last waypoint.
@@ -93,7 +92,7 @@ class StepByStepPrompt(PathPrompter):
         Get the output format for the task
         :return: Output format
         """
-        more_waypoints = "\n...,\n(waypoint_xn, waypoint_yn)\n" if self.expected_length > 1 else ""
+        more_waypoints = "\n\t\t\t...,\n\t\t(waypoint_xn, waypoint_yn)\n" if self.expected_length > 1 else ""
         return f"""
 ## Path Format:
     Provide the new path as an array of waypoint{"s" if self.expected_length > 1 else ""} in the following format:
@@ -114,7 +113,7 @@ if __name__ == "__main__":
 
     prompter = StepByStepPrompt(Model.LLAMA3_8b, Theta, G, O, workspace)
     print(prompter.get_init_prompt())
-    print(prompter.get_feedback_prompt(path=path, obstacle_feedback="obstacle_feedback", starts_in_init=True,
+    print(prompter.get_feedback_prompt(path=path, intersections="obstacle_feedback", starts_in_init=True,
                                        ends_in_goal=True))
     print(prompter.get_feedback(path=path, obstacle_feedback="obstacle_feedback", starts_in_init=True,
                                 ends_in_goal=True))

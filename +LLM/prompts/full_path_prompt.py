@@ -5,6 +5,24 @@ from prompts.examples import full_path_ex
 
 
 class FullPathPrompt(PathPrompter):
+    task_description = f"""
+    # Motion Planning Task
+    ## Goal: Come up with a path that starts in the start set, ends in the goal set, and avoids obstacles.
+
+    ## Path Requirements
+        Waypoints: The path should be represented as an array of waypoints and the path will be constructed by connecting these waypoints linearly.
+        Non-Crossing: Ensure the path and especially the linearly connected segments do not cross any obstacles. Make sure to keep a distance from the obstacles, because touching the obstacles is considered as crossing.
+        Start and End: The path must start within the start set and end in the goal set.
+        """
+
+    init_prompt = """
+    ## Instructions
+        Path Array: Output the path as an array of waypoints.
+        Start and End: The path must begin at any point within the start set and end at any point within the goal set.
+        Obstacle Avoidance: Verify that the path does not intersect any obstacles.
+        No code: Do not include any code in your response and do not try solve this with an algorithm.
+        """
+
     feedback_prompt = """
 ## Your generated path:
     path = {path}
@@ -18,24 +36,6 @@ class FullPathPrompt(PathPrompter):
 ## Instructions for Correction
     No code: Do not include any code in your response.
     {instruct_start}{instruct_end}Obstacle Avoidance: Adjust the path to avoid intersecting obstacles. You may add waypoints at problematic waypoints to move around obstacles.
-    """
-
-    init_prompt = """
-## Instructions
-    Path Array: Output the path as an array of waypoints.
-    Start and End: The path must begin at any point within the start set and end at any point within the goal set.
-    Obstacle Avoidance: Verify that the path does not intersect any obstacles.
-    No code: Do not include any code in your response and do not try solve this with an algorithm.
-    """
-
-    task_description = f"""
-# Motion Planning Task
-## Goal: Come up with a path that starts in the start set, ends in the goal set, and avoids obstacles.
-
-## Path Requirements
-    Waypoints: The path should be represented as an array of waypoints and the path will be constructed by connecting these waypoints linearly.
-    Non-Crossing: Ensure the path and especially the linearly connected segments do not cross any obstacles. Make sure to keep a distance from the obstacles, because touching the obstacles is considered as crossing.
-    Start and End: The path must start within the start set and end in the goal set.
     """
 
     def get_feedback(self, path: List[Tuple], intersections, starts_in_init: bool, ends_in_goal: bool) -> str:
