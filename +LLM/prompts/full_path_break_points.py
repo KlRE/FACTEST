@@ -5,21 +5,15 @@ from prompts.examples import full_path_ex
 
 
 class FullPathBreakPointsPrompt(PathPrompter):
-    feedback_prompt = """
-## Your generated path:
-    path = {path}
+    task_description = f"""
+    # Motion Planning Task
+    ## Goal: Come up with a path that starts in the start set, ends in the goal set, and avoids obstacles.
 
-## Feedback
-    Start set: {start_feedback}
-    Obstacle Avoidance (Rectangular Sets): (xmin, xmax, ymin, ymax): {obstacle_feedback}
-    End set: {end_feedback}
-    Breakpoints: {instruct_breakpoints}
-
-## Instructions for Correction
-    No code: Do not include any code in your response.
-    {instruct_start}{instruct_end}Obstacle Avoidance: Adjust the path to avoid intersecting obstacles. You may add waypoints at problematic waypoints to move around obstacles.
-    Breakpoints: Ensure the path passes through one of the breakpoints of each set.
-    """
+    ## Path Requirements
+        Waypoints: The path should be represented as an array of waypoints and the path will be constructed by connecting these waypoints linearly.  Use arbitrary waypoints that do not always have to be parallel to one axis.
+        Non-Crossing: Ensure the path and especially the linearly connected segments do not cross any obstacles. Make sure to keep a distance from the obstacles, because touching the obstacles is considered as crossing.
+        Start and End: The path must start within the start set and end in the goal set.
+        """
 
     init_prompt = """
 ## Instructions
@@ -30,14 +24,20 @@ class FullPathBreakPointsPrompt(PathPrompter):
     No code: Do not include any code in your response and do not try solve this with an algorithm.
     """
 
-    task_description = f"""
-# Motion Planning Task
-## Goal: Come up with a path that starts in the start set, ends in the goal set, and avoids obstacles.
+    feedback_prompt = """
+## Your generated path:
+    path = {path}
 
-## Path Requirements
-    Waypoints: The path should be represented as an array of waypoints and the path will be constructed by connecting these waypoints linearly.
-    Non-Crossing: Ensure the path and especially the linearly connected segments do not cross any obstacles. Make sure to keep a distance from the obstacles, because touching the obstacles is considered as crossing.
-    Start and End: The path must start within the start set and end in the goal set.
+## Feedback
+    Start set: {start_feedback}
+    Obstacle Avoidance (Rectangular Sets): (xmin, xmax, ymin, ymax): {obstacle_feedback}
+    End set: {end_feedback}
+    {instruct_breakpoints}
+
+## Instructions for Correction
+    No code: Do not include any code in your response.
+    {instruct_start}{instruct_end}Obstacle Avoidance: Adjust the path to avoid intersecting obstacles. You may add waypoints at problematic waypoints to move around obstacles.
+    Breakpoints: Ensure the path passes through one of the breakpoints of each set.
     """
 
     def __init__(self, model, Theta, G, O, workspace, use_history, num_sections=3):
