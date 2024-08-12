@@ -23,7 +23,7 @@ b5 = np.array([1, 1, -2, 4])
 b6 = np.array([-1, 3, -4, 6])
 
 # Apply the shift before rotation
-shift = 6
+shift = 7
 b2_shifted = np.array([b2[0] - shift, b2[1] + shift, b2[2], b2[3]])
 b3_shifted = np.array([b3[0] - shift, b3[1] + shift, b3[2], b3[3]])
 b4_shifted = np.array([b4[0] - shift, b4[1] + shift, b4[2], b4[3]])
@@ -67,7 +67,7 @@ O = [O1_rotated, O2_rotated, O3_rotated, O4_rotated, O5_rotated,
      O6_rotated, O7_rotated, O8_rotated, O9_rotated, O10_rotated]
 
 # Workspace rotated (assuming workspace needs to be rotated similarly)
-workspace = pc.Polytope(A, rotate_b_vector(np.array([3, 9, 5, 7])))
+workspace = pc.Polytope(A, rotate_b_vector(np.array([4, 9, 5, 7])))
 
 if __name__ == "__main__":
     from plot_env import plot_env
