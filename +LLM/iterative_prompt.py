@@ -11,6 +11,7 @@ from prompts.Prompter import Model, PromptStrategy
 from convert_polytope_to_arrays import convert_env_polytope_to_arrays
 from import_env import import_environment, Env
 from prompts.full_path_break_points import FullPathBreakPointsPrompt
+from prompts.full_path_break_points_valid_subpath import FullPathBreakPointsValidSubPathPrompt
 from prompts.full_path_prompt import FullPathPrompt
 from prompts.full_path_valid_path import FullPathValidPathPrompt
 from prompts.step_by_step_prompt import StepByStepPrompt
@@ -58,6 +59,7 @@ def iterative_prompt(env: Env, prompting_strat: PromptStrategy, model=Model.LLAM
     Theta, G, O, workspace = import_environment(env)
     new_Theta, new_G, new_O, new_workspace = convert_env_polytope_to_arrays(Theta, G, O, workspace)
     env_str = env.value
+
     if prompting_strat == PromptStrategy.FULL_PATH:
         Prompter = FullPathPrompt(model, new_Theta, new_G, new_O, new_workspace, use_history)
     elif prompting_strat == PromptStrategy.STEP_BY_STEP:
@@ -66,6 +68,8 @@ def iterative_prompt(env: Env, prompting_strat: PromptStrategy, model=Model.LLAM
         Prompter = FullPathBreakPointsPrompt(model, new_Theta, new_G, new_O, new_workspace, use_history, 2)
     elif prompting_strat == PromptStrategy.FULL_PATH_VALID_SUBPATH:
         Prompter = FullPathValidPathPrompt(model, new_Theta, new_G, new_O, new_workspace, use_history)
+    elif prompting_strat == PromptStrategy.FULL_PATH_VALID_PATH_BREAK_POINTS:
+        Prompter = FullPathBreakPointsValidSubPathPrompt(model, new_Theta, new_G, new_O, new_workspace, use_history, 2)
     else:
         raise ValueError(f"Invalid Prompt Strategy: {prompting_strat}")
 
@@ -106,7 +110,7 @@ def iterative_prompt(env: Env, prompting_strat: PromptStrategy, model=Model.LLAM
         )
         path = path_from_file(f"{log_directory}/path.txt")
         logging.info(f"Continuing from path: {path}")
-    path = [(0.5, 3.5), (2, 3.5)]
+
     for i in range(num_iterations):
         logging.info(f"Iteration {i + 1}")
         intersections, successful, starts_in_init, ends_in_goal = evaluate_waypoints(path, log_directory,

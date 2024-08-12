@@ -33,6 +33,7 @@ class PromptStrategy(Enum):
     STEP_BY_STEP = 'step_by_step'
     FULL_PATH_BREAK_POINTS = 'full_path_break_points'
     FULL_PATH_VALID_SUBPATH = 'full_path_valid_subpath'
+    FULL_PATH_VALID_PATH_BREAK_POINTS = 'full_path_valid_path_break_points'
 
     @staticmethod
     def from_str(label):
