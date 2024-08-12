@@ -45,9 +45,8 @@ b10_rotated = rotate_b_vector(b4_shifted)
 b11_rotated = rotate_b_vector(b5_shifted)
 b12_rotated = rotate_b_vector(b6_shifted)
 
-# Define polytopes with the rotated b vectors
-Theta_rotated = pc.Polytope(A, b0_rotated)
-G_rotated = pc.Polytope(A, b1_rotated)
+Theta = pc.Polytope(A, b0_rotated)
+G = pc.Polytope(A, b1_rotated)
 
 # Original obstacles (rotated)
 O1_rotated = pc.Polytope(A, b2_rotated)
@@ -64,13 +63,13 @@ O9_rotated = pc.Polytope(A, b11_rotated)
 O10_rotated = pc.Polytope(A, b12_rotated)
 
 # Combine original and shifted obstacles into one list
-O_rotated = [O1_rotated, O2_rotated, O3_rotated, O4_rotated, O5_rotated,
-             O6_rotated, O7_rotated, O8_rotated, O9_rotated, O10_rotated]
+O = [O1_rotated, O2_rotated, O3_rotated, O4_rotated, O5_rotated,
+     O6_rotated, O7_rotated, O8_rotated, O9_rotated, O10_rotated]
 
 # Workspace rotated (assuming workspace needs to be rotated similarly)
-workspace_rotated = pc.Polytope(A, rotate_b_vector(np.array([3, 9, 5, 7])))
+workspace = pc.Polytope(A, rotate_b_vector(np.array([3, 9, 5, 7])))
 
 if __name__ == "__main__":
     from plot_env import plot_env
 
-    plot_env(title, workspace_rotated, G_rotated, Theta_rotated, O_rotated)
+    plot_env(title, Theta, G, O, workspace)
