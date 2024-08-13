@@ -72,7 +72,7 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
                 successfuls.append(successful)
                 num_iterations_needed.append(num_iterations_ran)
 
-            log_success_rate(successfuls, num_iterations_needed, len(envs), log_results_file)
+            log_success_rate(successfuls, num_iterations_needed, evaluations_per_env, log_results_file)
             log_results_file.write("-----------------------------\n")
 
     log_results_file.close()
