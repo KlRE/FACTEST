@@ -1,10 +1,12 @@
 import argparse
 import os
 from datetime import datetime
+from typing import Tuple, List
 
 import ollama
 import re
 import logging
+import polytope as pc
 from evaluate_waypoints import evaluate_waypoints
 from prompts.Prompter import Model, PromptStrategy
 
@@ -41,10 +43,9 @@ def path_from_file(file_path):
         logging.warning("No path found in file")
 
 
-def iterative_prompt(env: Env, prompting_strat: PromptStrategy, model=Model.LLAMA3_8b, num_iterations=20,
-                     use_history=False,
-                     continue_path="",
-                     directory="./logs"):
+def iterative_prompt(env: Tuple[pc.Polytope, pc.Polytope, List[pc.Polytope], pc.Polytope], env_name: str,
+                     prompting_strat: PromptStrategy, model=Model.LLAMA3_8b, num_iterations=20,
+                     use_history=False, continue_path="", directory="./logs"):
     """
     Iteratively prompts the user for feedback on a path until a successful path is found or the maximum number of iterations is reached.
     If continue_path is provided, the function will continue from the path in the file.
@@ -56,9 +57,8 @@ def iterative_prompt(env: Env, prompting_strat: PromptStrategy, model=Model.LLAM
     :param model: The model to use for prompting
     :param directory: The directory to save logs
     """
-    Theta, G, O, workspace = import_environment(env)
+    Theta, G, O, workspace = env
     new_Theta, new_G, new_O, new_workspace = convert_env_polytope_to_arrays(Theta, G, O, workspace)
-    env_str = env.value
 
     if prompting_strat == PromptStrategy.FULL_PATH:
         Prompter = FullPathPrompt(model, new_Theta, new_G, new_O, new_workspace, use_history)
@@ -75,7 +75,7 @@ def iterative_prompt(env: Env, prompting_strat: PromptStrategy, model=Model.LLAM
 
     if continue_path == "":
         current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        log_directory = os.path.join(directory, model.value, env_str, current_time)
+        log_directory = os.path.join(directory, model.value, env_name, current_time)
         os.makedirs(log_directory, exist_ok=True)
 
         logging.basicConfig(
@@ -144,6 +144,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    iterative_prompt(env=args.env, prompting_strat=args.prompting_strat, model=args.model,
+    env = import_environment(args.env)
+
+    iterative_prompt(env=env, env_name=args.env.value, prompting_strat=args.prompting_strat, model=args.model,
                      num_iterations=args.num_iterations, use_history=args.use_history, continue_path=args.continue_path,
                      directory=args.directory)

@@ -10,7 +10,7 @@ class FullPathValidPathPrompt(PathPrompter):
 ## Goal: Come up with a path that starts in the start set, ends in the goal set, and avoids obstacles.
 
 ## Path Requirements
-    Waypoints: The path should be represented as an array of waypoints and the path will be constructed by connecting these waypoints with a straight line. This does NOT mean that you can only change one axis at a time. Diagonal lines are important.
+    Waypoints: The path should be represented as an array of waypoints and the path will be constructed by connecting these waypoints with a straight line. Use arbitrary waypoints that do not always have to be parallel to one axis.
     Non-Crossing: Ensure the path and especially the segments do not cross any obstacles. Make sure to keep a distance from the obstacles, because touching the obstacles is considered as crossing.
     Start and End: The path must start within the start set and end in the goal set.
     """
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     path = [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5)]
     intersections = []
 
-    prompter = FullPathPrompt(Model.LLAMA3_8b, Theta, G, O, workspace)
+    prompter = FullPathValidPathPrompt(Model.LLAMA3_8b, Theta, G, O, workspace)
     print(prompter.get_init_prompt())
     print(prompter.get_feedback_prompt(path=path, intersections=intersections, starts_in_init=True,
                                        ends_in_goal=True))

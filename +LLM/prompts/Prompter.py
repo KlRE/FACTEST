@@ -16,7 +16,7 @@ from supabase import create_client
 
 
 class Model(Enum):
-    LLAMA3_8b = 'llama'
+    LLAMA3_8b = 'llama3.1'
     MISTRAL_NEMO_12b = 'mistral-nemo'
     LLAMA3_1_8b_Groq = 'llama-3.1-8b-instant'
     LLAMA3_1_70b_Groq = 'llama-3.1-70b-versatile'
@@ -76,6 +76,7 @@ class Prompter(ABC):
         self.G = G
         self.O = O
         self.workspace = workspace
+        self.sleeptime = 5
 
     @abstractmethod
     def get_init_instruction(self):
@@ -109,7 +110,7 @@ class Prompter(ABC):
         """
         pass
 
-    def _prompt_model(self, prompt: str):
+    def _prompt_model(self, prompt: str, retry):
         """
         Prompt the model depending on the model type
         """
@@ -131,7 +132,11 @@ class Prompter(ABC):
             return chat_completion.choices[0].message.content
 
         elif self.model == Model.GEMINI_1_5_PRO or self.model == Model.GEMINI_1_5_FLASH:
-            time.sleep(6)
+            if retry:
+                time.sleep(self.sleeptime)
+                self.sleeptime *= 1.3
+            else:
+                self.sleep_time = 5
             response = self.client.functions.invoke(
                 "prompt",
                 invoke_options={
@@ -143,7 +148,7 @@ class Prompter(ABC):
             )
             return json.loads(response)["candidates"][0]["content"]["parts"][0]["text"]
 
-    def prompt_model(self, prompt: str, max_attempts=10, log_message='Prompting model') -> Tuple[bool, Any]:
+    def prompt_model(self, prompt: str, max_attempts=20, log_message='Prompting model') -> Tuple[bool, Any]:
         """
         Prompt the model with the given prompt and parse the response
         :param prompt: Prompt
@@ -154,9 +159,10 @@ class Prompter(ABC):
         successful = False
         logging.info(log_message)
         logging.info(prompt)
+        retry = False
         for i in range(max_attempts):
             try:
-                response = self._prompt_model(prompt)
+                response = self._prompt_model(prompt, retry)
                 logging.info(response)
                 parsed_response = self.parse_response(response)
                 logging.info(f'Parsed response: {parsed_response}')
@@ -167,6 +173,7 @@ class Prompter(ABC):
                 time.sleep(180)
             except Exception as e:
                 logging.warning(f"Failed to parse response because of Exception {e} Trying attempt {i + 1}")
+            retry = True
         return successful, None
 
     def prompt_init(self):

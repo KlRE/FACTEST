@@ -1,5 +1,10 @@
+import random
 from enum import Enum
 import importlib
+from typing import Tuple, List
+
+import numpy as np
+import polytope as pc
 
 
 class Env(Enum):
@@ -13,9 +18,47 @@ class Env(Enum):
     SCOTS_HSCC16 = 'scots_hscc16'
     SPIRAL = 'spiral'
     WALL = 'wall'
+    RANDOM = 'random'
 
     def __str__(self):
         return self.value
+
+    @staticmethod
+    def generate_env(num_obstacles: int):
+        """
+        Generate a random environment with the given number of obstacles. The obstacles are randomly placed in the workspace.
+        The workspace is a 10x10 square. The start set is a 2x2 square in the bottom left corner. The goal set is a 2x2 square in the top right corner.
+        """
+        # Define the workspace
+        A = np.array([[-1, 0], [1, 0], [0, -1], [0, 1]])
+        b_workspace = np.array([0, 10, 0, 10])  # (-xmin, xmax, -ymin, ymax)
+        workspace = pc.Polytope(A, b_workspace)
+
+        # Define the start set
+        b_init = np.array([0, 2, 0, 2])
+        Theta = pc.Polytope(A, b_init)
+
+        # Define the goal set
+        b_goal = np.array([-8, 10, -8, 10])
+        G = pc.Polytope(A, b_goal)
+
+        # Define the obstacles
+        O = []
+        generated_obstacles = 0
+        while generated_obstacles < num_obstacles:
+            # Generate random obstacle rounded to one decimal place
+            xmin = round(random.uniform(0, 9), 1)
+            xmax = round(random.uniform(xmin + 0.5, 10), 1)
+            ymin = round(random.uniform(0, 10), 1)
+            ymax = round(random.uniform(ymin + 0.5, 10), 1)
+            # check if overlaps with start or goal
+            if xmin <= 2 and ymin <= 2 or xmax >= 8 and ymax >= 8:
+                continue
+            b = np.array([-xmin, xmax, -ymin, ymax])
+            O.append(pc.Polytope(A, b))
+            generated_obstacles += 1
+
+        return Theta, G, O, workspace
 
 
 env_modules = {
@@ -32,7 +75,11 @@ env_modules = {
 }
 
 
-def import_environment(env_inp):
+def import_environment(env_inp) -> Tuple[pc.Polytope, pc.Polytope, List[pc.Polytope], pc.Polytope]:
+    """
+    Import the environment module based on the given environment name.
+    :param env_inp: Environment name or Env enum
+    """
     try:
         if isinstance(env_inp, str):
             env = Env(env_inp)
@@ -43,10 +90,10 @@ def import_environment(env_inp):
 
         module_path = env_modules[env]
         module = importlib.import_module(module_path)
-        Theta = getattr(module, 'Theta')
-        G = getattr(module, 'G')
-        O = getattr(module, 'O')
-        workspace = getattr(module, 'workspace')
+        Theta: pc.Polytope = getattr(module, 'Theta')
+        G: pc.Polytope = getattr(module, 'G')
+        O: List[pc.Polytope] = getattr(module, 'O')
+        workspace: pc.Polytope = getattr(module, 'workspace')
 
         return Theta, G, O, workspace
 
@@ -57,9 +104,15 @@ def import_environment(env_inp):
 
 
 if __name__ == "__main__":
-    for env in Env:
-        Theta, G, O, workspace = import_environment(env)
-        print(f'{env.value}: {Theta}, {G}, {O}, {workspace}')
+    from envs.plot_env import plot_env
 
-    Theta, G, O, workspace = import_environment('maze_2d')
-    print(Theta, G, O, workspace)
+    for _ in range(10):
+        Theta, G, O, workspace = Env.generate_env(5)
+        plot_env("Random Environment", workspace, G, Theta, O)
+
+    # for env in Env:
+    #     Theta, G, O, workspace = import_environment(env)
+    #     print(f'{env.value}: {Theta}, {G}, {O}, {workspace}')
+    #
+    # Theta, G, O, workspace = import_environment('maze_2d')
+    # print(Theta, G, O, workspace)
