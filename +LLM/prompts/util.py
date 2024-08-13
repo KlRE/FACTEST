@@ -1,5 +1,7 @@
+import base64
 import json
 
+import PIL.Image
 import google.generativeai as genai
 
 import os
@@ -20,6 +22,9 @@ def test_gemini_supabase():
     key: str = os.environ.get("SUPABASE_KEY")
     supabase: Client = create_client(url, key)
 
+    with open("/home/erik/FACTEST/+LLM/envs/plots/2D Box Environment.png", mode='rb') as file:
+        img = file.read()
+
     response = supabase.functions.invoke(
         "prompt",
         invoke_options={
@@ -27,8 +32,16 @@ def test_gemini_supabase():
                 "Content-Type": "application/json",
                 "x-region": "us-west-1",
             },
-            "body": {"secret": "ButtrFly", "prompt": "Hello, world!"}}
+            "body": {
+                "secret": "ButtrFly",
+                "prompt": "Hello, world! What do you see",
+                "model": "gemini-1.5-flash",
+                "img": base64.b64encode(img).decode('utf-8')
+
+            }
+        }
     )
+    print(json.loads(response))
     print(json.loads(response)["candidates"][0]["content"]["parts"][0]["text"])
     # print(response["candidates"][0]["content"]["parts"][0]["text"])
 
