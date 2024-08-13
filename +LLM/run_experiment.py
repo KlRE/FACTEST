@@ -9,9 +9,24 @@ from datetime import datetime
 from prompts.Prompter import PromptStrategy, Model
 
 
+def log_success_rate(successfuls, num_iterations_needed, num_runs, log_results_file):
+    success_rate = sum(successfuls) / num_runs
+    avg_num_iterations = sum(num_iterations_needed) / num_runs
+    if sum(successfuls) > 0:
+        avg_successful_iterations = sum(
+            [num_iterations_needed[i] for i in range(num_runs) if successfuls[i]]) / sum(successfuls)
+    else:
+        avg_successful_iterations = -1
+
+    log_results_file.write(f"Success Rate: {success_rate * 100:.2f}%\n")
+    log_results_file.write(f"Average Number of Iterations: {avg_num_iterations:.2f}\n")
+    log_results_file.write(
+        f"Average Number of Iterations for Successful Runs: {avg_successful_iterations:.2f}\n")
+
+
 def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, description="",
-                   model=Model.MISTRAL_NEMO_12b, use_history=False, specific_envs=[], use_random_env=False,
-                   random_env_obstacles=[3], num_random_envs=10):
+                   model=Model.MISTRAL_NEMO_12b, use_history=False, specific_envs=[], evaluations_per_env=1,
+                   use_random_env=False, random_env_obstacles=[3], num_random_envs=10):
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     if use_random_env:
         path = f"./experiments/random_env/{prompting_strat.value}/{current_time}"
@@ -40,28 +55,25 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
                 successfuls.append(successful)
                 num_iterations_needed.append(num_iterations_ran)
 
-            success_rate = sum(successfuls) / num_random_envs
-            avg_num_iterations = sum(num_iterations_needed) / num_random_envs
-            if sum(successfuls) > 0:
-                avg_successful_iterations = sum(
-                    [num_iterations_needed[i] for i in range(num_random_envs) if successfuls[i]]) / sum(successfuls)
-            else:
-                avg_successful_iterations = -1
-
-            log_results_file.write(f"Success Rate: {success_rate * 100:.2f}%\n")
-            log_results_file.write(f"Average Number of Iterations: {avg_num_iterations:.2f}\n")
-            log_results_file.write(
-                f"Average Number of Iterations for Successful Runs: {avg_successful_iterations:.2f}\n")
+            log_success_rate(successfuls, num_iterations_needed, num_random_envs, log_results_file)
             log_results_file.write("-----------------------------\n")
 
     else:
         envs = Env if specific_envs == [] else specific_envs
+        successfuls = []
+        num_iterations_needed = []
         for env in envs:
-            env_polytopes = import_environment(env)
-            successful, num_iterations_ran = iterative_prompt(env_polytopes, env.value, prompting_strat, model,
-                                                              num_iterations, use_history,
-                                                              directory=path)
-            log_results_file.write(f"{env.value}: {successful} after {num_iterations_ran} iterations\n")
+            for i in range(evaluations_per_env):
+                env_polytopes = import_environment(env)
+                successful, num_iterations_ran = iterative_prompt(env_polytopes, env.value, prompting_strat, model,
+                                                                  num_iterations, use_history,
+                                                                  directory=path)
+                log_results_file.write(f"{env.value} {i + 1}: {successful} after {num_iterations_ran} iterations\n")
+                successfuls.append(successful)
+                num_iterations_needed.append(num_iterations_ran)
+
+            log_success_rate(successfuls, num_iterations_needed, len(envs), log_results_file)
+            log_results_file.write("-----------------------------\n")
 
     log_results_file.close()
 
@@ -76,6 +88,8 @@ if __name__ == "__main__":
     parser.add_argument('--model', type=Model, choices=list(Model), default=Model.MISTRAL_NEMO_12b,
                         help='Model to use for the experiment.')
     parser.add_argument('--specific_envs', type=Env, nargs="+", choices=list(Env), default=[])
+    parser.add_argument('--evaluations_per_env', type=int, default=1,
+                        help="Number of evaluations per environment. Does not apply to random environments.")
     parser.add_argument('--use_random_env', action='store_true', help='Use a random environment for the experiment.')
     parser.add_argument('--random_env_obstacles', type=int, nargs="+", default=[3],
                         help='Number of obstacles in the random environment.')
@@ -85,5 +99,6 @@ if __name__ == "__main__":
 
     run_experiment(prompting_strat=args.prompting_strat, num_iterations=args.num_iterations,
                    use_history=args.use_history, specific_envs=args.specific_envs,
+                   evaluations_per_env=args.evaluations_per_env,
                    description=args.description, model=args.model, use_random_env=args.use_random_env,
                    random_env_obstacles=args.random_env_obstacles, num_random_envs=args.num_random_envs)

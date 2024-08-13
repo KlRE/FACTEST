@@ -120,11 +120,11 @@ def iterative_prompt(env: Tuple[pc.Polytope, pc.Polytope, List[pc.Polytope], pc.
 
         if successful:
             logging.info("Path is successful")
-            return True, i
+            return True, i + 1
         successful_prompt, path = Prompter.prompt_feedback(path, intersections, starts_in_init, ends_in_goal)
         if not successful_prompt:
             logging.warning("Failed to get feedback prompt")
-            return False, i
+            return False, i + 1
 
     return False, num_iterations
 
