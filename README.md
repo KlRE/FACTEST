@@ -39,6 +39,8 @@ Use `-h` to get more information on the arguments.
 Example code:
 ```iterative_prompt.py --env maze_2d --prompting_strat full_path_valid_subpath --model llama-3.1-70b-versatile --num_iterations 30 --directory "./logs```
 
+Uncomment the line 52 in evaluate_waypoints.py to see each iteration's path render.
+
 ### Omega FACTEST options
 
 This is the omega-regular version of FACTEST which synthesizes controllers for agents with omega-regular specifications

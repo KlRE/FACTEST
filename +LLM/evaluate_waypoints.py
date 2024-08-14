@@ -49,7 +49,7 @@ def evaluate_waypoints(path, SAVE_PATH, Theta, G, O, workspace, iteration, save=
         path_file = open(f'{SAVE_PATH}/path.txt', 'a')
         path_file.write(str(xref) + '\n')
 
-    plt.show()
+    # plt.show()
 
     return intersections, successful, starts_in_init, ends_in_goal
 
