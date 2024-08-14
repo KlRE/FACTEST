@@ -18,7 +18,6 @@ class Env(Enum):
     SCOTS_HSCC16 = 'scots_hscc16'
     SPIRAL = 'spiral'
     WALL = 'wall'
-    RANDOM = 'random'
 
     def __str__(self):
         return self.value
