@@ -144,8 +144,8 @@ class Prompter(ABC):
                 invoke_options={
                     "headers": {
                         "Content-Type": "application/json",
-                        "x-region": "us-west-1",
-                    },
+                        "x-region": "us-west-1",  # fetch from Gemini API from (supabase) server outside of europe
+                    },  # not needed when using the API from the US, rewrite this to use Gemini package directly
                     "body": {
                         "secret": "ButtrFly",
                         "prompt": prompt,
@@ -153,7 +153,7 @@ class Prompter(ABC):
                     }
                 }
             )
-            return json.loads(response)["candidates"][0]["content"]["parts"][0]["text"]
+            return json.loads(response)["text"]
 
     def prompt_model(self, prompt: str, max_attempts=20, log_message='Prompting model') -> Tuple[bool, Any]:
         """

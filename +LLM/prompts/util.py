@@ -36,13 +36,14 @@ def test_gemini_supabase():
                 "secret": "ButtrFly",
                 "prompt": "Hello, world! What do you see",
                 "model": "gemini-1.5-flash",
-                "img": base64.b64encode(img).decode('utf-8')
+                # "img": base64.b64encode(img).decode('utf-8')
 
             }
         }
     )
     print(json.loads(response))
-    print(json.loads(response)["candidates"][0]["content"]["parts"][0]["text"])
+    print(json.loads(response)["text"])
+    # print(json.loads(response)["candidates"][0]["content"]["parts"][0]["text"])
     # print(response["candidates"][0]["content"]["parts"][0]["text"])
 
 
