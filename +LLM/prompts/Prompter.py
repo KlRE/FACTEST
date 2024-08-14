@@ -134,11 +134,12 @@ class Prompter(ABC):
             return chat_completion.choices[0].message.content
 
         elif self.model == Model.GEMINI_1_5_PRO or self.model == Model.GEMINI_1_5_FLASH:
-            if retry:
-                time.sleep(self.sleeptime)
-                self.sleeptime *= 1.3
-            else:
-                self.sleep_time = 5
+            # if retry:
+            #     time.sleep(self.sleeptime)
+            #     self.sleeptime *= 1.3
+            # else:
+            #     self.sleep_time = 5
+            time.sleep(5)
             response = self.client.functions.invoke(
                 "prompt",
                 invoke_options={
