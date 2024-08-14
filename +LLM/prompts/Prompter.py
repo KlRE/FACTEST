@@ -15,6 +15,8 @@ from groq import Groq
 from supabase import create_client
 
 
+# added /home/erik/miniconda3/envs/factest/lib/python3.10/site-packages/supafunc/_sync.py line 32 timeout=300
+
 class Model(Enum):
     LLAMA3_8b = 'llama3.1'
     MISTRAL_NEMO_12b = 'mistral-nemo'
@@ -144,7 +146,12 @@ class Prompter(ABC):
                         "Content-Type": "application/json",
                         "x-region": "us-west-1",
                     },
-                    "body": {"secret": "ButtrFly", "prompt": prompt}}
+                    "body": {
+                        "secret": "ButtrFly",
+                        "prompt": prompt,
+                        "model": self.model.value,
+                    }
+                }
             )
             return json.loads(response)["candidates"][0]["content"]["parts"][0]["text"]
 
@@ -172,7 +179,7 @@ class Prompter(ABC):
                 logging.warning(f"Rate limit error: {e}.\n Trying again in 3 minutes")
                 time.sleep(180)
             except Exception as e:
-                logging.warning(f"Failed to parse response because of Exception {e} Trying attempt {i + 1}")
+                logging.warning(f"Failed to parse response because of Exception {type(e)}{e} Trying attempt {i + 1}")
             retry = True
         return successful, None
 
