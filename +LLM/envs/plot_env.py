@@ -1,23 +1,43 @@
 import matplotlib.pyplot as plt
-from factest.plotting.plot_polytopes import plotPoly
+
+import os
+import sys
+
+currFile = os.path.abspath(__file__)
+
+factestPath2 = currFile.replace('/+LLM/envs/plot_env.py', '')
+sys.path.append(factestPath2)
+
+from factest.plotting.plot_polytopes import plotPoly, plotPoly_3d
 
 
-def plot_env(title, workspace, G, Theta, O, save=False):
+def plot_env(title, workspace, G, Theta, O, save=False, plot3d=False):
     """
     Plot the environment with the workspace, goal region, initial region, and obstacles
     """
+    if plot3d:
+        plotPolytope = plotPoly_3d
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        # set the axis limits
+        ax.set_xlim(-50, 55)
+        ax.set_ylim(-10, 55)
+        ax.set_zlim(-30, 35)
+    else:
+        plotPolytope = plotPoly
+        fig, ax = plt.subplots()
 
-    fig, ax = plt.subplots()
-
-    plotPoly(workspace, ax, 'yellow')
-    plotPoly(G, ax, 'green')
-    plotPoly(Theta, ax, 'blue')
+    if workspace:
+        plotPolytope(workspace, ax, 'yellow')
+    plotPolytope(G, ax, 'green')
+    plotPolytope(Theta, ax, 'blue')
 
     i = 1
     for obstacle in O:
         print('plotting poly #', i)
-        plotPoly(obstacle, ax, 'red')
+        plotPolytope(obstacle, ax, 'red')
         i += 1
+
     ax.autoscale_view()
     plt.title(title)
     plt.show()
