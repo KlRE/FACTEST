@@ -71,7 +71,7 @@ def iterative_prompt(env: Tuple[pc.Polytope, pc.Polytope, List[pc.Polytope], pc.
     elif prompting_strat == PromptStrategy.FULL_PATH_VALID_PATH_BREAK_POINTS:
         Prompter = FullPathBreakPointsValidSubPathPrompt(model, new_Theta, new_G, new_O, new_workspace, use_history, 2)
     else:
-        raise ValueError(f"Invalid Prompt Strategy: {prompting_strat}")
+        raise ValueError(f"Invalid Iterative Prompt Strategy: {prompting_strat}")
 
     if continue_path == "":
         current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")

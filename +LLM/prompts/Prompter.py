@@ -48,6 +48,13 @@ class PromptStrategy(Enum):
         return self.value
 
 
+class SinglePrompt(Enum):
+    SOLVABLE_PROMPT = 'solvable_prompt'
+
+    def __str__(self):
+        return self.value
+
+
 class Prompter(ABC):
     """Abstract class for LLM prompters which can implement different prompting strategies."""
 
@@ -105,7 +112,7 @@ class Prompter(ABC):
         pass
 
     @abstractmethod
-    def get_path_output_format(self):
+    def get_output_format(self):
         """
         Get the output format for the task
         :return: Output format
@@ -200,7 +207,7 @@ class Prompter(ABC):
         task_desc = self.get_task_description()
         task_data = self.get_task_data()
         init_prompt = self.get_init_instruction()
-        path_format = self.get_path_output_format()
+        path_format = self.get_output_format()
         return task_desc + task_data + init_prompt + path_format
 
     def get_task_data(self):
@@ -275,7 +282,7 @@ class PathPrompter(Prompter, ABC):
         task_desc = self.get_task_description()
         task_data = self.get_task_data()
         feedback_str = self.get_feedback(path, intersections, starts_in_init, ends_in_goal)
-        path_format = self.get_path_output_format()
+        path_format = self.get_output_format()
         history_str = ""
         if self.use_history:
             if len(self.history) > 0:
@@ -314,7 +321,7 @@ class PathPrompter(Prompter, ABC):
             raise ValueError("No path found in response")
         return path
 
-    def get_path_output_format(self):
+    def get_output_format(self):
         """
         Get the output format for the task
         :return: Output format

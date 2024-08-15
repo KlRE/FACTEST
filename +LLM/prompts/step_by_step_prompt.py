@@ -87,7 +87,7 @@ class StepByStepPrompt(PathPrompter):
             raise ValueError(f"Expected path of length {self.expected_length}, got path of length {len(path)}")
         return path
 
-    def get_path_output_format(self):
+    def get_output_format(self):
         """
         Get the output format for the task
         :return: Output format
