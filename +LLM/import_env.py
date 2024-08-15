@@ -30,7 +30,7 @@ class Env(Enum):
         """
         # Define the workspace
         A = np.array([[-1, 0], [1, 0], [0, -1], [0, 1]])
-        b_workspace = np.array([0, 10, 0, 10])  # (-xmin, xmax, -ymin, ymax)
+        b_workspace = np.array([2, 12, 2, 12])  # (-xmin, xmax, -ymin, ymax)
         workspace = pc.Polytope(A, b_workspace)
 
         # Define the start set
@@ -60,6 +60,22 @@ class Env(Enum):
         return Theta, G, O, workspace
 
 
+class UnsolvableEnv(Enum):
+    BOX = 'box'
+    BOX_2 = 'box_2'
+    CANYON = 'canyon'
+    CURVE = 'curve'
+    DIAGONAL_WALL = 'diagonal_wall'
+    EASY = 'easy'
+    MAZE_2D = 'maze_2d'
+    SCOTS_HSCC16 = 'scots_hscc16'
+    SPIRAL = 'spiral'
+    WALL = 'wall'
+
+    def __str__(self):
+        return self.value
+
+
 env_modules = {
     Env.BOX: 'envs.box',
     Env.BOX_BOUNDARY: 'envs.box_boundary',
@@ -71,21 +87,27 @@ env_modules = {
     Env.SCOTS_HSCC16: 'envs.scots_hscc16',
     Env.SPIRAL: 'envs.spiral',
     Env.WALL: 'envs.wall',
+
+    UnsolvableEnv.BOX: 'envs.unsolvable.box',
+    UnsolvableEnv.BOX_2: 'envs.unsolvable.box_2',
+    UnsolvableEnv.CANYON: 'envs.unsolvable.canyon',
+    UnsolvableEnv.CURVE: 'envs.unsolvable.curve',
+    UnsolvableEnv.DIAGONAL_WALL: 'envs.unsolvable.diagonal_wall',
+    UnsolvableEnv.EASY: 'envs.unsolvable.easy',
+    UnsolvableEnv.MAZE_2D: 'envs.unsolvable.maze_2d',
+    UnsolvableEnv.SCOTS_HSCC16: 'envs.unsolvable.scots_hscc16',
+    UnsolvableEnv.SPIRAL: 'envs.unsolvable.spiral',
+    UnsolvableEnv.WALL: 'envs.unsolvable.wall',
 }
 
 
-def import_environment(env_inp) -> Tuple[pc.Polytope, pc.Polytope, List[pc.Polytope], pc.Polytope]:
+def import_environment(env) -> Tuple[pc.Polytope, pc.Polytope, List[pc.Polytope], pc.Polytope]:
     """
     Import the environment module based on the given environment name.
     :param env_inp: Environment name or Env enum
     """
     try:
-        if isinstance(env_inp, str):
-            env = Env(env_inp)
-        elif isinstance(env_inp, Env):
-            env = env_inp
-        else:
-            raise ValueError('Invalid input')
+        assert isinstance(env, Env) or isinstance(env, UnsolvableEnv), f'Invalid environment type: {type(env)}'
 
         module_path = env_modules[env]
         module = importlib.import_module(module_path)
@@ -97,9 +119,9 @@ def import_environment(env_inp) -> Tuple[pc.Polytope, pc.Polytope, List[pc.Polyt
         return Theta, G, O, workspace
 
     except KeyError:
-        raise ValueError(f'Environment {env_inp} not found')
+        raise ValueError(f'Environment {env} not found')
     except AttributeError as e:
-        raise ImportError(f'Failed to import environment {env_inp}: {e}')
+        raise ImportError(f'Failed to import environment {env}: {e}')
 
 
 if __name__ == "__main__":

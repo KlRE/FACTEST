@@ -41,6 +41,9 @@ Example code:
 
 Uncomment the line 52 in evaluate_waypoints.py to see each iteration's path render.
 
+Every code can run with the Run/Debug Configuration in PyCharm with working directory set to "{path_to}/FACTEST/+LLM"
+and FACTEST as the root directory.
+
 ### Omega FACTEST options
 
 This is the omega-regular version of FACTEST which synthesizes controllers for agents with omega-regular specifications
