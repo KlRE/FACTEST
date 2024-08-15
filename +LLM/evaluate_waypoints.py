@@ -9,7 +9,7 @@ from factest.synthesis.factest_base_z3 import FACTEST_Z3
 import matplotlib.pyplot as plt
 from factest.plotting.plot_polytopes import plotPoly
 
-SAVE_PATH = '../+llm/images/llama3/1'
+SAVE_PATH = '../old_files/+llm/images/llama3/1'
 
 new_path = [
     (0.5, 3.5),
