@@ -49,7 +49,7 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
     log_results_file.write(f"Use history: {use_history}\n")
     log_results_file.write("-----------------------------\n")
 
-    with Progress(*Progress.get_default_columns(), TimeElapsedColumn(), auto_refresh=False,
+    with Progress(*Progress.get_default_columns(), TimeElapsedColumn(), refresh_per_second=1,
                   speed_estimate_period=600) as pb:
         if use_random_env:
             t1 = pb.add_task('Prompting Env', total=num_random_envs)
@@ -69,12 +69,12 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
                     successfuls.append(successful)
                     num_iterations_needed.append(num_iterations_ran)
 
-                    pb.update(task_id=t1, completed=i + 1, refresh=True)
+                    pb.update(task_id=t1, completed=i + 1)
 
                 log_success_rate(successfuls, num_iterations_needed, log_results_file)
                 log_results_file.write("-----------------------------\n")
 
-                pb.update(task_id=t2, completed=num_obs + 1, refresh=True)
+                pb.update(task_id=t2, completed=num_obs + 1)
 
         else:
             envs = Env if specific_envs == [] else specific_envs
@@ -94,12 +94,12 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
                     successfuls.append(successful)
                     num_iterations_needed.append(num_iterations_ran)
 
-                    pb.update(task_id=t1, completed=i + 1, refresh=True)
+                    pb.update(task_id=t1, completed=i + 1)
 
                 log_success_rate(successfuls, num_iterations_needed, log_results_file)
                 log_results_file.write("-----------------------------\n")
 
-                pb.update(task_id=t2, completed=num_env + 1, refresh=True)
+                pb.update(task_id=t2, completed=num_env + 1)
 
     log_results_file.close()
 

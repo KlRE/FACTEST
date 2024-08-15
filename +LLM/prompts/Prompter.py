@@ -127,7 +127,8 @@ class Prompter(ABC):
             return ollama.generate(model=self.model.value, prompt=prompt)['response']
 
         elif self.model == Model.LLAMA3_1_8b_Groq or self.model == Model.LLAMA3_1_70b_Groq or self.model == Model.LLAMA3_70b_Groq:
-            time.sleep(4)
+            if retry:
+                time.sleep(4)
             chat_completion = self.client.chat.completions.create(
                 messages=[
                     {
@@ -141,12 +142,11 @@ class Prompter(ABC):
             return chat_completion.choices[0].message.content
 
         elif self.model == Model.GEMINI_1_5_PRO or self.model == Model.GEMINI_1_5_FLASH:
-            # if retry:
-            #     time.sleep(self.sleeptime)
-            #     self.sleeptime *= 1.3
-            # else:
-            #     self.sleep_time = 5
-            time.sleep(5)
+            if retry:
+                time.sleep(self.sleeptime)
+                self.sleeptime *= 1.3
+            else:
+                self.sleep_time = 5
             response = self.client.functions.invoke(
                 "prompt",
                 invoke_options={

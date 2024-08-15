@@ -44,7 +44,7 @@ No code: Do not include any code in your response and do not try solve this with
         :param response: The response to parse
         :return: The Solvable value
         """
-        search = re.search(r"Solvable: (True|False)", response)
+        search = re.search(r"Solvable\s*[:;,*.\-\s]*\s*(True|False)", response)
         Solvable = search.group(1)
         if Solvable == "True":
             return True

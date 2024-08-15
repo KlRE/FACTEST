@@ -42,7 +42,7 @@ Example code:
 Uncomment the line 52 in evaluate_waypoints.py to see each iteration's path render.
 
 Every code can run with the Run/Debug Configuration in PyCharm with working directory set to "{path_to}/FACTEST/+LLM"
-and FACTEST as the root directory.
+and FACTEST (this Repo) as the root directory.
 
 ### Omega FACTEST options
 

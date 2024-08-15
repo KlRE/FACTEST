@@ -88,16 +88,16 @@ env_modules = {
     Env.SPIRAL: 'envs.spiral',
     Env.WALL: 'envs.wall',
 
-    UnsolvableEnv.BOX: 'envs.unsolvable.box',
-    UnsolvableEnv.BOX_2: 'envs.unsolvable.box_2',
-    UnsolvableEnv.CANYON: 'envs.unsolvable.canyon',
-    UnsolvableEnv.CURVE: 'envs.unsolvable.curve',
-    UnsolvableEnv.DIAGONAL_WALL: 'envs.unsolvable.diagonal_wall',
-    UnsolvableEnv.EASY: 'envs.unsolvable.easy',
-    UnsolvableEnv.MAZE_2D: 'envs.unsolvable.maze_2d',
-    UnsolvableEnv.SCOTS_HSCC16: 'envs.unsolvable.scots_hscc16',
-    UnsolvableEnv.SPIRAL: 'envs.unsolvable.spiral',
-    UnsolvableEnv.WALL: 'envs.unsolvable.wall',
+    UnsolvableEnv.BOX: 'envs.unsolvable.unsolvable_box',
+    UnsolvableEnv.BOX_2: 'envs.unsolvable.unsolvable_box_2',
+    UnsolvableEnv.CANYON: 'envs.unsolvable.unsolvable_canyon',
+    UnsolvableEnv.CURVE: 'envs.unsolvable.unsolvable_curve',
+    UnsolvableEnv.DIAGONAL_WALL: 'envs.unsolvable.unsolvable_diagonal_wall',
+    UnsolvableEnv.EASY: 'envs.unsolvable.unsolvable_easy',
+    UnsolvableEnv.MAZE_2D: 'envs.unsolvable.unsolvable_maze_2d',
+    UnsolvableEnv.SCOTS_HSCC16: 'envs.unsolvable.unsolvable_scots_hscc16',
+    UnsolvableEnv.SPIRAL: 'envs.unsolvable.unsolvable_spiral',
+    UnsolvableEnv.WALL: 'envs.unsolvable.unsolvable_wall',
 }
 
 

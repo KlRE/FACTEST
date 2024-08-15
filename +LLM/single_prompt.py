@@ -22,7 +22,7 @@ def single_prompt(env: Tuple[pc.Polytope, pc.Polytope, List[pc.Polytope], pc.Pol
         raise ValueError(f"Invalid Single Prompt Strategy: {prompting_strat}")
 
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    log_directory = os.path.join(directory, str(prompting_strat), env_name, str(model))
+    log_directory = os.path.join(directory, env_name)
     os.makedirs(log_directory, exist_ok=True)
 
     logging.basicConfig(
@@ -36,12 +36,14 @@ def single_prompt(env: Tuple[pc.Polytope, pc.Polytope, List[pc.Polytope], pc.Pol
         force=True
     )
 
-    logging.info("Asking initial prompt")
+    logging.info("Asking prompt")
     successful_prompt, answer = Prompter.prompt_init()
 
     if not successful_prompt:
         logging.warning("Failed to get initial prompt")
-        return False, -1
+        raise ValueError("Failed to get initial prompt")
+
+    return answer
 
 
 if __name__ == '__main__':
@@ -55,5 +57,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     env = import_environment(args.env)
+
+    log_directory = os.path.join(args.directory, args.prompting_strat.value, args.model.value)
 
     single_prompt(env, args.env.value, args.prompting_strat, args.model, args.directory)
