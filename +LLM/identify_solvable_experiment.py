@@ -43,6 +43,7 @@ def identify_solvable_experiment(description="", model=Model.MISTRAL_NEMO_12b, s
         percentage_class_incorrect = []
 
         for num_env, env in enumerate(solvable_envs):
+            pb.reset(t1)
             successfuls = []
 
             for i in range(evaluations_per_env):
