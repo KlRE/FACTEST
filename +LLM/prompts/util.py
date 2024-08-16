@@ -1,8 +1,10 @@
 import base64
 import json
+from time import strftime, gmtime
 
 import PIL.Image
-import google.generativeai as genai
+import vertexai
+from vertexai.generative_models import GenerativeModel
 
 import os
 
@@ -21,33 +23,44 @@ def get_example_prompt():
 
 def test_gemini_supabase():
     load_dotenv()
-    url: str = os.environ.get("SUPABASE_URL")
-    key: str = os.environ.get("SUPABASE_KEY")
-    supabase: Client = create_client(url, key)
-
-    with open("/home/erik/FACTEST/+LLM/envs/plots/2D Box Environment.png", mode='rb') as file:
-        img = file.read()
-
-    response = supabase.functions.invoke(
-        "prompt",
-        invoke_options={
-            "headers": {
-                "Content-Type": "application/json",
-                "x-region": "us-west-1",
-            },
-            "body": {
-                "secret": "ButtrFly",
-                "prompt": "Hello, world! What do you see",
-                "model": "gemini-1.5-flash",
-                # "img": base64.b64encode(img).decode('utf-8')
-
-            }
-        }
-    )
-    print(json.loads(response))
-    print(json.loads(response)["text"])
+    # url: str = os.environ.get("SUPABASE_URL")
+    # key: str = os.environ.get("SUPABASE_KEY")
+    # supabase: Client = create_client(url, key)
+    #
+    # with open("/home/erik/FACTEST/+LLM/envs/plots/2D Box Environment.png", mode='rb') as file:
+    #     img = file.read()
+    #
+    # response = supabase.functions.invoke(
+    #     "prompt",
+    #     invoke_options={
+    #         "headers": {
+    #             "Content-Type": "application/json",
+    #             "x-region": "us-west-1",
+    #         },
+    #         "body": {
+    #             "secret": "ButtrFly",
+    #             "prompt": "Hello, world! What do you see",
+    #             "model": "gemini-1.5-flash",
+    #             # "img": base64.b64encode(img).decode('utf-8')
+    #
+    #         }
+    #     }
+    # )
+    # print(json.loads(response))
+    # print(json.loads(response)["text"])
     # print(json.loads(response)["candidates"][0]["content"]["parts"][0]["text"])
     # print(response["candidates"][0]["content"]["parts"][0]["text"])
+    # project_id = "PROJECT_ID
+
+    vertexai.init(project="gentle-keyword-432706-b3", location="europe-west3")
+
+    model = GenerativeModel("gemini-1.5-flash-001")
+
+    response = model.generate_content(
+        "What's a good name for a flower shop that specializes in selling bouquets of dried flowers?"
+    )
+
+    print(response.text)
 
 
 def test_groq():
@@ -109,17 +122,20 @@ def random_test():
                   refresh_per_second=3,
                   speed_estimate_period=600) as pb:
         t1 = pb.add_task('inner', total=10)
-        t2 = pb.add_task('outer', total=100)
+        t2 = pb.add_task('outer', total=10)
 
-        for i in range(100):
+        for i in range(10):
             for j in range(10):
                 print(f"Verbose info! {i, j}")
-                sleep(10)
+                sleep(0.01)
                 pb.update(task_id=t1, completed=j + 1, refresh=True)
             pb.update(task_id=t2, completed=i + 1, refresh=True)
+        elapsed = pb.tasks[1].elapsed
+        s_time = strftime("%Hh:%Mm:%Ss", gmtime(elapsed))
+        print(s_time)
 
 
 if __name__ == "__main__":
-    # random_test()
-    test_gemini_supabase()
+    random_test()
+    # test_gemini_supabase()
 # test_groq()
