@@ -6,6 +6,7 @@ from typing import Tuple, List
 import numpy as np
 import polytope as pc
 from rich.progress import track
+from scipy.spatial import ConvexHull
 
 
 class Env(Enum):
@@ -31,7 +32,7 @@ class Env(Enum):
         """
         # Define the workspace
         A = np.array([[-1, 0], [1, 0], [0, -1], [0, 1]])
-        b_workspace = np.array([2, 12, 2, 12])  # (-xmin, xmax, -ymin, ymax)
+        b_workspace = np.array([2, 22, 2, 22])  # (-xmin, xmax, -ymin, ymax)
         workspace = pc.Polytope(A, b_workspace)
 
         # Define the start set
@@ -39,24 +40,26 @@ class Env(Enum):
         Theta = pc.Polytope(A, b_init)
 
         # Define the goal set
-        b_goal = np.array([-8, 10, -8, 10])
+        b_goal = np.array([-18, 20, -18, 20])
         G = pc.Polytope(A, b_goal)
 
         # Define the obstacles
         O = []
         generated_obstacles = 0
+
+        lower_bound = np.array([0, 0])
+        upper_bound = np.array([20, 20])
+
         while generated_obstacles < num_obstacles:
-            # Generate random obstacle rounded to one decimal place
-            xmin = round(random.uniform(0, 9), 1)
-            xmax = round(random.uniform(xmin + 0.5, 10), 1)
-            ymin = round(random.uniform(0, 10), 1)
-            ymax = round(random.uniform(ymin + 0.5, 10), 1)
-            # check if overlaps with start or goal
-            if xmin <= 2 and ymin <= 2 or xmax >= 8 and ymax >= 8:
-                continue
-            b = np.array([-xmin, xmax, -ymin, ymax])
-            O.append(pc.Polytope(A, b))
-            generated_obstacles += 1
+            while True:
+                # Generate random points
+                points = np.random.uniform(lower_bound, upper_bound, (4, 2))
+
+                poly = pc.qhull(points)
+                if len(poly.vertices) == 4 and not pc.is_adjacent(poly, Theta) and not pc.is_adjacent(poly, G):
+                    O.append(poly)
+                    generated_obstacles += 1
+                    break
 
         return Theta, G, O, workspace
 
@@ -165,13 +168,13 @@ def generate_python_envs():
 
 
 if __name__ == "__main__":
-    # from envs.plot_env import plot_env
-    #
-    # for _ in range(10):
-    #     Theta, G, O, workspace = Env.generate_env(5)
-    #     plot_env("Random Environment", workspace, G, Theta, O)
+    from envs.plot_env import plot_env
 
-    generate_python_envs()
+    for _ in range(10):
+        Theta, G, O, workspace = Env.generate_env(3)
+        plot_env("Random Environment", workspace, G, Theta, O)
+
+    # generate_python_envs()
     # for env in Env:
     #     Theta, G, O, workspace = import_environment(env)
     #     print(f'{env.value}: {Theta}, {G}, {O}, {workspace}')

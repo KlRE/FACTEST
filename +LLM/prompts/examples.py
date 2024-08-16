@@ -1,4 +1,5 @@
 def full_path_ex():
+    return ""
     return """
 ## Example
 ### Provided Data

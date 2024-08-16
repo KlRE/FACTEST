@@ -202,7 +202,7 @@ if __name__ == "__main__":
 
     Theta, G, O, workspace = convert_env_polytope_to_arrays(Theta, G, O, workspace)
 
-    prompter = FullPathPrompt(Model.LLAMA3_8b, Theta, G, O, workspace, use_history=True)
+    prompter = FullPathBreakPointsValidSubPathPrompt(Model.LLAMA3_8b, Theta, G, O, workspace, use_history=True)
     print(prompter.get_breakpoint_prompt())
     print(prompter.get_init_prompt())
     print(prompter.get_init_instruction())

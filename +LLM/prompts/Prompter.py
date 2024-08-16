@@ -236,7 +236,6 @@ class Prompter(ABC):
         """
         Get the task description for the given environment
         """
-        assert isinstance(self.O, list) and isinstance(self.O[0], tuple)
 
         o = ""
         for i, obstacle in enumerate(self.O):
@@ -244,11 +243,11 @@ class Prompter(ABC):
 
         task_description = f"""
 ## Provided Data
-    Start Position (Rectangular Set): (xmin, xmax, ymin, ymax) = {self.Theta}
-        Note: You can choose any point within this rectangle to start the path.
-    Goal Position (Rectangular Set): (xmin, xmax, ymin, ymax) = {self.G}
-        Note: You can choose any point within this rectangle to end the path.
-    Obstacles (Rectangular Sets): (xmin, xmax, ymin, ymax):
+    Start Position (Polygon): Defined by the clockwise coordinates of its four vertices [(x1, y1), (x2, y2), (x3, y3), (x4, y4)] = {self.Theta}
+        Note: You can choose any point within this polygon to start the path.
+    Goal Position (Polygon): Defined by the clockwise coordinates of its four vertices [(x1, y1), (x2, y2), (x3, y3), (x4, y4)] = {self.G}
+        Note: You can choose any point within this polygon to end the path.
+    Obstacles (Polygons):    Each obstacle is defined by the clockwise coordinates of its four vertices [(x1, y1), (x2, y2), (x3, y3), (x4, y4)]:
 {o}
     """
         return task_description

@@ -3,7 +3,11 @@ import json
 from time import strftime, gmtime
 
 import PIL.Image
+import polytope as pc
+import numpy as np
 import vertexai
+from matplotlib import pyplot as plt
+from scipy.spatial import ConvexHull
 from vertexai.generative_models import GenerativeModel
 
 import os
@@ -84,35 +88,6 @@ def test_groq():
 def random_test():
     from rich.progress import Progress
     from time import sleep
-    # Initial lists
-    successfuls = [True, False, True, False, True]
-    num_iterations_needed = [10, -1, 5, -1, 15]
-
-    # Original filtering operation
-    successfuls_filtered = [successfuls[i] for i in range(len(successfuls)) if num_iterations_needed[i] != -1]
-    num_iterations_needed_filtered = [num_iterations_needed[i] for i in range(len(num_iterations_needed)) if
-                                      num_iterations_needed[i] != -1]
-
-    print("Original filtering approach:")
-    print("Filtered successfuls:", successfuls_filtered)
-    print("Filtered num_iterations_needed:", num_iterations_needed_filtered)
-
-    # Optimized approach using zip
-    paired_lists = list(zip(successfuls, num_iterations_needed))
-    filtered_pairs = [(success, iterations) for success, iterations in paired_lists if iterations != -1]
-
-    successfuls_optimized, num_iterations_needed_optimized = zip(*filtered_pairs)
-    successfuls_optimized = list(successfuls_optimized)
-    num_iterations_needed_optimized = list(num_iterations_needed_optimized)
-
-    print("\nOptimized filtering approach:")
-    print("Filtered successfuls:", successfuls_optimized)
-    print("Filtered num_iterations_needed:", num_iterations_needed_optimized)
-
-    # Verify that both approaches give the same result
-    print("\nVerification:")
-    print("Both approaches produce the same result:",
-          successfuls_filtered == successfuls_optimized and num_iterations_needed_filtered == num_iterations_needed_optimized)
 
     with Progress(SpinnerColumn(spinner_name="simpleDots"),
                   TextColumn("[progress.description]{task.description}", table_column=Column(ratio=1)),
@@ -123,6 +98,13 @@ def random_test():
                   speed_estimate_period=600) as pb:
         t1 = pb.add_task('inner', total=10)
         t2 = pb.add_task('outer', total=10)
+
+        # random Polytope with random rotation
+        A = np.random.rand(4, 2)
+        b_init = np.random.rand(4)
+        Theta = pc.Polytope(A, b_init)
+        print(Theta)
+        print(Theta.vertices)
 
         for i in range(10):
             for j in range(10):
@@ -135,7 +117,54 @@ def random_test():
         print(s_time)
 
 
+def generate_convex_hull_vertices(n=4, lower_bound=-10, upper_bound=10):
+    while True:
+        # Generate random points
+        points = np.random.uniform(lower_bound, upper_bound, (n, 2))
+
+        # Compute the convex hull
+        hull = ConvexHull(points)
+
+        # Check if the convex hull has 4 vertices
+        if len(hull.vertices) == n:
+            poly = pc.qhull(points)
+            return points[hull.vertices], poly
+
+
+def plot_polytope(vertices):
+    plt.figure(figsize=(6, 6))
+    vertices = np.vstack([vertices, vertices[0]])  # Close the polytope
+    plt.plot(vertices[:, 0], vertices[:, 1], 'o-', markersize=10)
+    plt.fill(vertices[:, 0], vertices[:, 1], alpha=0.3)
+    plt.grid(True)
+    plt.show()
+
+
 if __name__ == "__main__":
-    random_test()
+    # Generate a valid 4-vertex convex polytope
+    vertices, poly = generate_convex_hull_vertices()
+
+    # Plot the polytope
+    plot_polytope(vertices)
+
+    # Plot the polytope using the polytope library
+    fix, ax = plt.subplots()
+    poly.plot(ax)
+    ax.autoscale()
+    plt.show()
+    print(pc.extreme(poly))
+    # Generate random quadrilateral
+    # A, b, vertices = generate_random_2d_polygon()
+    #
+    # print("Matrix A (coefficients of inequalities):")
+    # print(A)
+    # print("Vector b (constants of inequalities):")
+    # print(b)
+    # print("Vertices of the polygon:")
+    # Theta = pc.Polytope(A, b)
+    # print(Theta)
+    # print(pc.extreme(Theta))
+    # print(vertices)
+    # random_test()
     # test_gemini_supabase()
 # test_groq()

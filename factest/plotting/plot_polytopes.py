@@ -10,15 +10,17 @@ def plotPoly(poly, ax=None, color='red'):  # Takes in tulip polytope and plots i
         fig, ax = plt.subplots()
 
     if type(poly) != list:
-        poly_verts = pc.extreme(poly)
-        polyPatch = Polygon(poly_verts, facecolor=color, edgecolor=color, alpha=0.25)
-        ax.add_patch(polyPatch)
+        poly.plot(ax, color=color, alpha=0.25, linewidth=0, edgecolor=color)
+        # poly_verts = pc.extreme(poly)
+        # polyPatch = Polygon(poly_verts, facecolor=color, edgecolor=color, alpha=0.25)
+        # ax.add_patch(polyPatch)
 
     else:
         for polygon in poly:
-            poly_verts = pc.extreme(polygon)
-            polyPatch = Polygon(poly_verts, facecolor=color, edgecolor=color, alpha=0.25)
-            ax.add_patch(polyPatch)
+            polygon.plot(ax, color=color, alpha=0.25, linewidth=0, edgecolor=color)
+            # poly_verts = pc.extreme(polygon)
+            # polyPatch = Polygon(poly_verts, facecolor=color, edgecolor=color, alpha=0.25)
+            # ax.add_patch(polyPatch)
 
 
 def plotPoly_3d(poly, ax, color='r'):

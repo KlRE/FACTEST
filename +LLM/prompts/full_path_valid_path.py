@@ -61,7 +61,7 @@ class FullPathValidPathPrompt(PathPrompter):
 
         if intersecting:
             valid_subpath = path[:intersection_idx + 1]
-            subpath_feedback = f"""First segment to cross with an Obstacle (Rectangular Sets): (xmin, xmax, ymin, ymax):
+            subpath_feedback = f"""First segment to cross with an Obstacle (Polygon): Defined by the clockwise coordinates of its four vertices [(x1, y1), (x2, y2), (x3, y3), (x4, y4)]:
     {obstacle_feedback}\t\tLongest valid subpath from start: {valid_subpath}"""
 
         else:
@@ -116,7 +116,7 @@ class FullPathValidPathPrompt(PathPrompter):
                                    f'obstacle(s):\n')
 
                 for idx, obs in intersection:
-                    obstacle_report += f"\t\t\t\tObstacle {idx + 1}: ({-obs.b[0]}, {obs.b[1]}, {-obs.b[2]}, {obs.b[3]})\n"
+                    obstacle_report += f"\t\t\t\tObstacle {idx + 1}: {self.O[idx]})\n"
                 return obstacle_report, intersecting, i
         intersecting = False
         return 'No intersections found. You avoided all obstacles!', intersecting, -1
@@ -136,7 +136,7 @@ if __name__ == "__main__":
     print(prompter.get_init_prompt())
     print(prompter.get_feedback_prompt(path=path, intersections=intersections, starts_in_init=True,
                                        ends_in_goal=True))
-    print(prompter.get_feedback(path=path, obstacle_feedback="obstacle_feedback", starts_in_init=True,
+    print(prompter.get_feedback(path=path, intersections=intersections, starts_in_init=True,
                                 ends_in_goal=True))
     print(prompter.get_init_instruction())
     print(prompter.get_task_data())
