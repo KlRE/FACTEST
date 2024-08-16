@@ -10,9 +10,11 @@ from typing import List, Tuple, Any
 
 import groq
 import ollama
+import vertexai
 from dotenv import load_dotenv
 from groq import Groq
 from supabase import create_client
+from vertexai.generative_models import GenerativeModel
 
 
 # added /home/erik/miniconda3/envs/factest/lib/python3.10/site-packages/supafunc/_sync.py line 32 timeout=300
@@ -25,6 +27,8 @@ class Model(Enum):
     LLAMA3_70b_Groq = 'llama3-70b-8192'
     GEMINI_1_5_PRO = 'gemini-1.5-pro'
     GEMINI_1_5_FLASH = 'gemini-1.5-flash'
+    GEMINI_1_5_PRO_VERTEX = 'gemini-1.5-pro-001'
+    GEMINI_1_5_FLASH_VERTEX = 'gemini-1.5-flash-001'
 
     def __str__(self):
         return self.value
@@ -75,11 +79,17 @@ class Prompter(ABC):
         if model == Model.LLAMA3_1_8b_Groq or model == Model.LLAMA3_1_70b_Groq:
             load_dotenv()
             self.client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
         elif model == Model.GEMINI_1_5_PRO or model == Model.GEMINI_1_5_FLASH:
             load_dotenv()
             url = os.environ.get("SUPABASE_URL")
             key = os.environ.get("SUPABASE_KEY")
             self.client = create_client(url, key)
+
+        elif model == Model.GEMINI_1_5_PRO_VERTEX or model == Model.GEMINI_1_5_FLASH_VERTEX:
+            vertexai.init(project="gentle-keyword-432706-b3", location="us-central1")
+
+            self.client = GenerativeModel(model.value)
 
         self.Theta = Theta
         self.G = G
@@ -147,21 +157,33 @@ class Prompter(ABC):
                 self.sleeptime *= 1.3
             else:
                 self.sleep_time = 5
-            response = self.client.functions.invoke(
-                "prompt",
-                invoke_options={
-                    "headers": {
-                        "Content-Type": "application/json",
-                        "x-region": "us-west-1",  # fetch from Gemini API from (supabase) server outside of europe
-                    },  # not needed when using the API from the US, rewrite this to use Gemini package directly
-                    "body": {
-                        "secret": "ButtrFly",
-                        "prompt": prompt,
-                        "model": self.model.value,
+
+                response = self.client.functions.invoke(
+                    "prompt",
+                    invoke_options={
+                        "headers": {
+                            "Content-Type": "application/json",
+                            "x-region": "us-west-1",  # fetch from Gemini API from (supabase) server outside of europe
+                        },  # not needed when using the API from the US, rewrite this to use Gemini package directly
+                        "body": {
+                            "secret": "ButtrFly",
+                            "prompt": prompt,
+                            "model": self.model.value,
+                        }
                     }
-                }
-            )
-            return json.loads(response)["text"]
+                )
+                return json.loads(response)["text"]
+
+        elif self.model == Model.GEMINI_1_5_PRO_VERTEX or self.model == Model.GEMINI_1_5_FLASH_VERTEX:
+            if retry:
+                time.sleep(self.sleeptime)
+                self.sleeptime *= 1.3
+            else:
+                self.sleep_time = 5
+
+            response = self.client.generate_content(prompt)
+
+            return response.text
 
     def prompt_model(self, prompt: str, max_attempts=20, log_message='Prompting model') -> Tuple[bool, Any]:
         """
