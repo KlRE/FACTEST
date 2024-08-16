@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import time
 
 from import_env import Env, import_environment
 from iterative_prompt import iterative_prompt
@@ -10,25 +11,32 @@ from rich.progress import Progress, TimeElapsedColumn
 from prompts.Prompter import PromptStrategy, Model
 
 
-def log_success_rate(successfuls, num_iterations_needed, log_results_file):
+def log_success_rate(successfuls, num_iterations_needed, path_lens, log_results_file):
     # filter out invalid runs (num_iterations_needed == -1)
     successfuls = [successfuls[i] for i in range(len(successfuls)) if num_iterations_needed[i] != -1]
+    path_lens = [path_lens[i] for i in range(len(path_lens)) if num_iterations_needed[i] != -1]
     num_iterations_needed = [num_iterations_needed[i] for i in range(len(num_iterations_needed)) if
                              num_iterations_needed[i] != -1]
     num_runs = len(successfuls)
 
     success_rate = sum(successfuls) / num_runs
     avg_num_iterations = sum(num_iterations_needed) / num_runs
+    avg_path_len = sum(path_lens) / num_runs
+
     if sum(successfuls) > 0:
         avg_successful_iterations = sum(
             [num_iterations_needed[i] for i in range(num_runs) if successfuls[i]]) / sum(successfuls)
+        avg_successful_path_len = sum([path_lens[i] for i in range(num_runs) if successfuls[i]]) / sum(successfuls)
     else:
         avg_successful_iterations = -1
+        avg_successful_path_len = -1
 
     log_results_file.write(f"Success Rate: {success_rate * 100:.2f}%\n")
     log_results_file.write(f"Average Number of Iterations: {avg_num_iterations:.2f}\n")
     log_results_file.write(
         f"Average Number of Iterations for Successful Runs: {avg_successful_iterations:.2f}\n")
+    log_results_file.write(f"Average Path Length: {avg_path_len:.2f}\n")
+    log_results_file.write(f"Average Path Length for Successful Runs: {avg_successful_path_len:.2f}\n")
 
 
 def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, description="",
@@ -59,22 +67,31 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
                 log_results_file.write(f"Random environment with {obs} obstacles\n")
                 successfuls = []
                 num_iterations_needed = []
+                path_lens = []
+                pb.reset(t1)
 
                 for i in range(num_random_envs):
                     env_polytopes = Env.generate_env(obs)
-                    successful, num_iterations_ran = iterative_prompt(env_polytopes, f"Env {i}", prompting_strat,
-                                                                      model, num_iterations, use_history,
-                                                                      directory=f"{path}/{obs}_Obs")
-                    log_results_file.write(f"Random Env {i}: {successful} after {num_iterations_ran} iterations\n")
+                    successful, num_iterations_ran, path_len = iterative_prompt(env_polytopes, f"Env {i}",
+                                                                                prompting_strat,
+                                                                                model, num_iterations, use_history,
+                                                                                directory=f"{path}/{obs}_Obs")
+                    log_results_file.write(
+                        f"Random Env {i}: {successful} after {num_iterations_ran} iterations with path length {path_len}\n")
                     successfuls.append(successful)
                     num_iterations_needed.append(num_iterations_ran)
+                    path_lens.append(path_len)
 
                     pb.update(task_id=t1, completed=i + 1)
 
-                log_success_rate(successfuls, num_iterations_needed, log_results_file)
+                log_success_rate(successfuls, num_iterations_needed, path_lens, log_results_file)
                 log_results_file.write("-----------------------------\n")
 
                 pb.update(task_id=t2, completed=num_obs + 1)
+
+            elapsed = pb.tasks[1].elapsed
+            s_time = time.strftime("%Hh:%Mm:%Ss", time.gmtime(elapsed))
+            log_results_file.write(f"Total time: {s_time}\n")
 
         else:
             envs = Env if specific_envs == [] else specific_envs
@@ -84,22 +101,31 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
             for num_env, env in enumerate(envs):
                 successfuls = []
                 num_iterations_needed = []
+                path_lens = []
+                pb.reset(t1)
 
                 for i in range(evaluations_per_env):
                     env_polytopes = import_environment(env)
-                    successful, num_iterations_ran = iterative_prompt(env_polytopes, env.value, prompting_strat, model,
-                                                                      num_iterations, use_history,
-                                                                      directory=path)
-                    log_results_file.write(f"{env.value} {i + 1}: {successful} after {num_iterations_ran} iterations\n")
+                    successful, num_iterations_ran, path_len = iterative_prompt(env_polytopes, env.value,
+                                                                                prompting_strat, model,
+                                                                                num_iterations, use_history,
+                                                                                directory=path)
+                    log_results_file.write(
+                        f"{env.value} {i + 1}: {successful} after {num_iterations_ran} iterations with path length {path_len}\n")
                     successfuls.append(successful)
                     num_iterations_needed.append(num_iterations_ran)
+                    path_lens.append(path_len)
 
                     pb.update(task_id=t1, completed=i + 1)
 
-                log_success_rate(successfuls, num_iterations_needed, log_results_file)
+                log_success_rate(successfuls, num_iterations_needed, path_lens, log_results_file)
                 log_results_file.write("-----------------------------\n")
 
                 pb.update(task_id=t2, completed=num_env + 1)
+
+            elapsed = pb.tasks[1].elapsed
+            s_time = time.strftime("%Hh:%Mm:%Ss", time.gmtime(elapsed))
+            log_results_file.write(f"Total time: {s_time}\n")
 
     log_results_file.close()
 
