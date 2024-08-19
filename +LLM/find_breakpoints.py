@@ -1,6 +1,10 @@
 import numpy as np
 import polytope as pc
 from matplotlib import pyplot as plt
+from z3 import *
+
+from envs.plot_env import plot_env
+from import_env import Env
 
 
 def find_breakpoints(num_sections, Theta, G, O, workspace):
@@ -24,6 +28,8 @@ def find_breakpoints(num_sections, Theta, G, O, workspace):
     assert isinstance(O, list) and all(
         isinstance(obstacle, pc.Polytope) for obstacle in O), "O should be a list of Polytopes"
 
+    x = Real('x')
+    y = Real('y')
     G_xmin, G_xmax = -G.b[0], G.b[1]
     Theta_xmin, Theta_xmax = -Theta.b[0], Theta.b[1]
     workspace_ymin, workspace_ymax = -workspace.b[2], workspace.b[3]
@@ -33,54 +39,86 @@ def find_breakpoints(num_sections, Theta, G, O, workspace):
     breakpoints = [[] for _ in range(num_sections - 1)]
 
     upper_bound, lower_bound = workspace_ymax, workspace_ymin
-
-    fig, ax = plt.subplots(figsize=(10, 10))
+    print(f"upper_bound: {upper_bound}, lower_bound: {lower_bound}")
     for i in range(num_sections - 1):
         vertical_line = round(Theta_xmin + (i + 1) * signed_segment_length, 2)
         print(f"vertical_line: {vertical_line}")
 
-        A_line = np.array([[1, 0], [-1, 0]])  # x_0 <= x <= x_0
-        b_line = np.array([vertical_line, -vertical_line])
-
         meeting_obstacles = []
+
         for obstacle in O:
+            solver = Optimize()
+            constraints = [
+                x == vertical_line
+            ]
             A_obstacle, b_obstacle = obstacle.A, obstacle.b
-            A_combined = np.vstack([A_obstacle, A_line])
-            b_combined = np.hstack([b_obstacle, b_line])
 
-            # Define the polytope with the new constraints
-            intersection_polytope = pc.Polytope(A_combined, b_combined)
+            for j in range(len(A_obstacle)):
+                constraints.append(A_obstacle[j][0] * x + A_obstacle[j][1] * y <= b_obstacle[j])
 
-            # Compute the vertices of the intersection
-            vertices = pc.extreme(intersection_polytope)
-            print(intersection_polytope)
-            intersection_polytope.plot(ax, color='red', alpha=0.5)
-            if vertices:
-                print("Intersection vertices with the vertical line x =", vertical_line, ":")
-                print(vertices)
-    plt.show()
+            solver.add(constraints)
 
-    # meeting_obstacles.sort(key=lambda x: x[2])
-    #
-    # print(f"meeting_obstacles: {meeting_obstacles}")
-    # for j in range(len(meeting_obstacles) + 1):
-    #     if j == 0:
-    #         lower = lower_bound
-    #     else:
-    #         lower = meeting_obstacles[j - 1][3]
-    #
-    #     if j == len(meeting_obstacles):
-    #         upper = upper_bound
-    #     else:
-    #         upper = meeting_obstacles[j][2]
-    #     if upper > lower:
-    #         breakpoints[i].append((vertical_line, round((upper + lower) / 2, 2)))
-    #
-    # print(f"breakpoints: {breakpoints[i]}")
+            solver.push()
+            solver.minimize(y)
+            if solver.check() == sat:
+                m = solver.model()
+                y_min = m[y].as_decimal(2)
+            else:
+                y_min = None
+            solver.pop()
+
+            solver.push()
+            solver.maximize(y)
+            if solver.check() == sat:
+                m = solver.model()
+                y_max = m[y].as_decimal(2)
+            else:
+                y_max = None
+            solver.pop()
+            if y_min is not None and y_max is not None:
+                # remove possible question marks
+                y_min = y_min.replace("?", "")
+                y_max = y_max.replace("?", "")
+                meeting_obstacles.append((float(y_min), float(y_max)))
+
+        meeting_obstacles.sort(key=lambda y: y[0])
+
+        print(f"meeting_obstacles: {meeting_obstacles}")
+
+        if len(meeting_obstacles) == 0:
+            breakpoints[i].append((vertical_line, round((upper_bound + lower_bound) / 2, 2)))
+
+        else:
+            for j in range(len(meeting_obstacles) + 1):
+                if j == 0:
+                    lower = lower_bound
+                else:
+                    lower = max(lower, meeting_obstacles[j - 1][1])
+
+                if j == len(meeting_obstacles):
+                    upper = upper_bound
+                else:
+                    upper = meeting_obstacles[j][0]
+
+                if upper > lower:
+                    breakpoints[i].append((vertical_line, round((upper + lower) / 2, 2)))
+
+        print(f"breakpoints: {breakpoints[i]}")
+    return breakpoints
 
 
 if __name__ == "__main__":
     from convert_polytope_to_arrays import convert_env_polytope_to_arrays
-    from envs.maze_2d import Theta, G, O, workspace
 
-    breakpoints = find_breakpoints(2, Theta, G, O, workspace)
+    # from envs.maze_2d import Theta, G, O, workspace
+
+    Theta, G, O, workspace = Env.generate_env(3)
+    fig, ax = plot_env("Random Environment", workspace, G, Theta, O)
+
+    breakpoints = find_breakpoints(4, Theta, G, O, workspace)
+
+    # plot breakpoints
+    for bp in breakpoints:
+        for x, y in bp:
+            ax.plot(x, y, 'bo')
+    plt.show()
