@@ -55,7 +55,8 @@ def evaluate_waypoints(path, SAVE_PATH, Theta, G, O, workspace, iteration, save=
 
 
 if __name__ == "__main__":
-    from import_env import import_environment
+    from import_env import import_environment, Env
 
-    Theta, G, O, workspace = import_environment('maze_2d')
+    Theta, G, O, workspace = import_environment(Env.MAZE_2D)
     intersections, succ, si, eg = evaluate_waypoints(new_path, SAVE_PATH, Theta, G, O, workspace, 1, save=False)
+    print(intersections[4][0][1].tolist(), succ, si, eg)

@@ -7,7 +7,7 @@ sys.path.append(modelPath)
 
 import numpy as np
 import polytope as pc
-import z3
+from z3 import *
 
 from common_functions import partition_polytope
 
@@ -176,33 +176,29 @@ class FACTEST_Z3():
         intersects = False
 
         num_segs = len(xrefs) - 1
-        err_bounds = [0 for i in range(num_segs)]
+
         self.s = z3.Solver()
 
         intersections = [[] for i in range(num_segs)]
         for seg in range(num_segs):  # test which segment intersects with which obstacle
-            err = err_bounds[seg]
 
             for idx, obstacle in enumerate(self.unsafe_polys):
+                x = Real('x')  # possible intersection point x
+                y = Real('y')  # possible intersection point y
+                a = Real('a')  # a is the parameter for the line segment
+                constraints = [a <= 1, a >= 0]  # a is between 0 and 1
                 A_obs = obstacle.A
                 b_obs = obstacle.b
 
-                obs_constraints = []
-                for row in range(len(A_obs)):
-                    A_row = A_obs[row]
-                    b_val = b_obs[row] + np.linalg.norm(A_row) * err  # TODO: Need to deal with the bloating
+                for j in range(len(A_obs)):  # add the obstacle constraints so that x and y are within the obstacle
+                    constraints.append(A_obs[j][0] * x + A_obs[j][1] * y <= b_obs[j])
 
-                    row_sum_0 = 0
-                    row_sum_1 = 0
-                    for j in range(self.dims):
-                        row_sum_0 += xrefs[seg][j] * A_row[j]
-                        row_sum_1 += xrefs[seg + 1][j] * A_row[j]
-                    # print(type(row_sum_0), type(b_val))
-                    row_constraint = z3.And(bool(row_sum_0 > b_val), bool(row_sum_1 > b_val))
-                    obs_constraints.append(row_constraint)
+                # add the line segment constraints so that x and y are on the line segment
+                constraints.append(x == a * xrefs[seg][0] + (1 - a) * xrefs[seg + 1][0])
+                constraints.append(y == a * xrefs[seg][1] + (1 - a) * xrefs[seg + 1][1])
 
-                self.s.add(z3.Or(tuple(obs_constraints)))
-                if self.s.check() != z3.sat:
+                self.s.add(constraints)
+                if self.s.check() == z3.sat:  # if the constraints are satisfiable, then the line segment intersects with the obstacle
                     intersections[seg].append((idx, obstacle))
                     intersects = True
                 self.s.reset()
