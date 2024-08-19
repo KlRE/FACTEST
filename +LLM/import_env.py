@@ -50,18 +50,35 @@ class Env(Enum):
         lower_bound = np.array([0, 0])
         upper_bound = np.array([20, 20])
 
-        while generated_obstacles < num_obstacles:
-            while True:
-                # Generate random points
-                points = np.random.uniform(lower_bound, upper_bound, (4, 2))
+        grid_size = 15
+        overlap_size = 5
 
-                # round to 1 decimal place
+        num_rows = int((upper_bound[1] - lower_bound[1]) / (grid_size - overlap_size))
+        num_cols = int((upper_bound[0] - lower_bound[0]) / (grid_size - overlap_size))
+
+        grid_cells = []
+        for x in range(num_cols):
+            for y in range(num_rows):
+                x_min = lower_bound[0] + x * (grid_size - overlap_size)
+                x_max = x_min + grid_size
+                y_min = lower_bound[1] + y * (grid_size - overlap_size)
+                y_max = y_min + grid_size
+                grid_cells.append((x_min, y_min, x_max, y_max))
+        # print(grid_cells)
+        np.random.shuffle(grid_cells)
+        grid_cells = grid_cells[:num_obstacles]
+
+        obstacles = []
+        for (x_min, y_min, x_max, y_max) in grid_cells:
+            x_max, y_max = min(x_max, upper_bound[0]), min(y_max, upper_bound[1])
+            print(x_min, y_min, x_max, y_max)
+            while True:  # Try multiple times to ensure obstacles are created
+                points = np.random.uniform([x_min, y_min], [x_max, y_max], (4, 2))
                 points = np.round(points, 1)
 
                 poly = pc.qhull(points)
                 if len(poly.vertices) == 4 and not pc.is_adjacent(poly, Theta) and not pc.is_adjacent(poly, G):
                     O.append(poly)
-                    generated_obstacles += 1
                     break
 
         return Theta, G, O, workspace
@@ -174,7 +191,7 @@ if __name__ == "__main__":
     from envs.plot_env import plot_env
 
     for _ in range(10):
-        Theta, G, O, workspace = Env.generate_env(3)
+        Theta, G, O, workspace = Env.generate_env(4)
         plot_env("Random Environment", workspace, G, Theta, O)
 
     # generate_python_envs()

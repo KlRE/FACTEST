@@ -47,6 +47,8 @@ def plot_env(title, workspace, G, Theta, O, save=False, plot3d=False):
         os.makedirs(path, exist_ok=True)
         fig.savefig(path + title)
 
+    return fig, ax
+
 
 if __name__ == "__main__":
     # plot all the environments in this directory
