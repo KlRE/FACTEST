@@ -239,15 +239,15 @@ class Prompter(ABC):
 
         o = ""
         for i, obstacle in enumerate(self.O):
-            o += f"\t\t\tObstacle {i + 1}: {obstacle}\n"
+            o += f"\t\t\tObstacle {i + 1}: {obstacle.tolist()}\n"
 
         task_description = f"""
 ## Provided Data
-    Start Position (Polygon): Defined by the clockwise coordinates of its four vertices [(x1, y1), (x2, y2), (x3, y3), (x4, y4)] = {self.Theta}
+    Start Position (Polygon): Defined by the clockwise coordinates of its four vertices [[x1, y1], [x2, y2], [x3, y3], [x4, y4]] = {self.Theta.tolist()}
         Note: You can choose any point within this polygon to start the path.
-    Goal Position (Polygon): Defined by the clockwise coordinates of its four vertices [(x1, y1), (x2, y2), (x3, y3), (x4, y4)] = {self.G}
+    Goal Position (Polygon): Defined by the clockwise coordinates of its four vertices [[x1, y1], [x2, y2], [x3, y3], [x4, y4]] = {self.G.tolist()}
         Note: You can choose any point within this polygon to end the path.
-    Obstacles (Polygons):    Each obstacle is defined by the clockwise coordinates of its four vertices [(x1, y1), (x2, y2), (x3, y3), (x4, y4)]:
+    Obstacles (Polygons):    Each obstacle is defined by the clockwise coordinates of its four vertices [[x1, y1], [x2, y2], [x3, y3], [x4, y4]]:
 {o}
     """
         return task_description

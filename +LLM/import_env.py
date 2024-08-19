@@ -55,6 +55,9 @@ class Env(Enum):
                 # Generate random points
                 points = np.random.uniform(lower_bound, upper_bound, (4, 2))
 
+                # round to 1 decimal place
+                points = np.round(points, 1)
+
                 poly = pc.qhull(points)
                 if len(poly.vertices) == 4 and not pc.is_adjacent(poly, Theta) and not pc.is_adjacent(poly, G):
                     O.append(poly)

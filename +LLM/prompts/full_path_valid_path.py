@@ -49,14 +49,14 @@ class FullPathValidPathPrompt(PathPrompter):
             start_feedback = "Correct, The path starts in the correct start set."
             instruct_start = ""
         else:
-            start_feedback = f"Incorrect, The path does not start in the correct start set {self.Theta}."
+            start_feedback = f"Incorrect, The path does not start in the correct start set {self.Theta.tolist()}."
             instruct_start = "Start Position: Begin within the specified rectangular start set.\n"
 
         if ends_in_goal:
             end_feedback = "Correct, The path ends inside the goal set."
             instruct_end = ""
         else:
-            end_feedback = f"Incorrect, The path does not end inside the goal set {self.G}."
+            end_feedback = f"Incorrect, The path does not end inside the goal set {self.G.tolist()}."
             instruct_end = "Goal Position: End within the specified rectangular goal set.\n"
 
         if intersecting:
@@ -116,7 +116,7 @@ class FullPathValidPathPrompt(PathPrompter):
                                    f'obstacle(s):\n')
 
                 for idx, obs in intersection:
-                    obstacle_report += f"\t\t\t\tObstacle {idx + 1}: {self.O[idx]})\n"
+                    obstacle_report += f"\t\t\t\tObstacle {idx + 1}: {self.O[idx].tolist()})\n"
                 return obstacle_report, intersecting, i
         intersecting = False
         return 'No intersections found. You avoided all obstacles!', intersecting, -1
