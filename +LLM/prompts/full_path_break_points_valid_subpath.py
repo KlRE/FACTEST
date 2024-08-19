@@ -2,6 +2,8 @@ from typing import List, Tuple
 
 from prompts.Prompter import PathPrompter
 from prompts.examples import full_path_ex
+from z3 import *
+import polytope as pc
 
 
 class FullPathBreakPointsValidSubPathPrompt(PathPrompter):
@@ -24,7 +26,7 @@ class FullPathBreakPointsValidSubPathPrompt(PathPrompter):
 
     init_prompt = """
 ## Instructions
-    Path Array: Output the path as an array of waypoints.
+    Path Array: Output the path as an array of waypoints, where you are allowed to use arbitrary waypoints that do not always have to be parallel to one axis.
     Breakpoints: Choose one waypoint from each set of breakpoints. The path should pass through one of the breakpoints of each set.
     Start and End: The path must begin at any point within the start set and end at any point within the goal set.
     Obstacle Avoidance: Verify that the path does not intersect any obstacles.
@@ -50,8 +52,8 @@ class FullPathBreakPointsValidSubPathPrompt(PathPrompter):
 
     def __init__(self, model, Theta, G, O, workspace, use_history, num_sections=3):
         super().__init__(model, Theta, G, O, workspace, use_history)
+        self.breakpoints = None
         self.num_sections = num_sections
-        self.breakpoints = self.find_breakpoints()
 
     def get_feedback(self, path: List[Tuple], intersections, starts_in_init: bool, ends_in_goal: bool) -> str:
         obstacle_feedback, intersecting, intersection_idx = self.obstacle_feedback(intersections, path)
@@ -72,8 +74,8 @@ class FullPathBreakPointsValidSubPathPrompt(PathPrompter):
 
         if intersecting:
             valid_subpath = path[:intersection_idx + 1]
-            subpath_feedback = f"""First segment to cross with an Obstacle (Rectangular Sets): (xmin, xmax, ymin, ymax):
-    {obstacle_feedback}\tLongest valid subpath from start: {valid_subpath}"""
+            subpath_feedback = f"""First segment to cross with an Obstacle (Polygon): Defined by the clockwise coordinates of its four vertices [(x1, y1), (x2, y2), (x3, y3), (x4, y4)]:
+    {obstacle_feedback}\t\tLongest valid subpath from start: {valid_subpath}"""
 
         else:
             subpath_feedback = "Your path does not cross any obstacles"
@@ -119,41 +121,90 @@ class FullPathBreakPointsValidSubPathPrompt(PathPrompter):
             bp_str += f"\t\tBreakpoint Set {i + 1}: {bp}\n"
         return super().get_task_data() + f"{bp_str}"
 
-    def find_breakpoints(self):
+    def init_breakpoints(self, Theta, G, O, workspace):
         """
         Given environment parameters, divide the environment into num_sections sections vertically. Find the breakpoints where segments meet.
         """
-        Theta, G, O, workspace = self.Theta, self.G, self.O, self.workspace
-        num_sections = self.num_sections
-        signed_segment_length = ((G[1] + G[0]) / 2 - (Theta[1] + Theta[0]) / 2) / num_sections
+        assert isinstance(self.O, list) and all(
+            isinstance(obstacle, pc.Polytope) for obstacle in O), "O should be a list of Polytopes"
 
-        breakpoints = [[] for _ in range(num_sections - 1)]
+        x = Real('x')
+        y = Real('y')
+        G_xmin, G_xmax = -G.b[0], G.b[1]
+        Theta_xmin, Theta_xmax = -Theta.b[0], Theta.b[1]
+        workspace_ymin, workspace_ymax = -workspace.b[2], workspace.b[3]
 
-        upper_bound, lower_bound = workspace[3], workspace[2]
-        for i in range(num_sections - 1):
-            vertical_line = round(Theta[0] + (i + 1) * signed_segment_length, 2)
+        signed_segment_length = ((G_xmin + G_xmax) / 2 - (Theta_xmax + Theta_xmin) / 2) / self.num_sections
+        print(signed_segment_length)
+        breakpoints = [[] for _ in range(self.num_sections - 1)]
+
+        upper_bound, lower_bound = workspace_ymax, workspace_ymin
+        print(f"upper_bound: {upper_bound}, lower_bound: {lower_bound}")
+        for i in range(self.num_sections - 1):
+            vertical_line = round(Theta_xmin + (i + 1) * signed_segment_length, 2)
+            print(f"vertical_line: {vertical_line}")
 
             meeting_obstacles = []
-            for xmin, xmax, ymin, ymax in O:
-                if xmin <= vertical_line <= xmax:
-                    meeting_obstacles.append((xmin, xmax, ymin, ymax))
-            meeting_obstacles.sort(key=lambda x: x[2])
 
-            for j in range(len(meeting_obstacles) + 1):
-                if j == 0:
-                    lower = lower_bound
-                else:
-                    lower = meeting_obstacles[j - 1][3]
+            for obstacle in O:
+                solver = Optimize()
+                constraints = [
+                    x == vertical_line
+                ]
+                A_obstacle, b_obstacle = obstacle.A, obstacle.b
 
-                if j == len(meeting_obstacles):
-                    upper = upper_bound
+                for j in range(len(A_obstacle)):
+                    constraints.append(A_obstacle[j][0] * x + A_obstacle[j][1] * y <= b_obstacle[j])
+
+                solver.add(constraints)
+
+                solver.push()
+                solver.minimize(y)
+                if solver.check() == sat:
+                    m = solver.model()
+                    y_min = m[y].as_decimal(2)
                 else:
-                    upper = meeting_obstacles[j][2]
-                if upper > lower:
-                    breakpoints[i].append((vertical_line, round((upper + lower) / 2, 2)))
-        return breakpoints
+                    y_min = None
+                solver.pop()
+
+                solver.push()
+                solver.maximize(y)
+                if solver.check() == sat:
+                    m = solver.model()
+                    y_max = m[y].as_decimal(2)
+                else:
+                    y_max = None
+                solver.pop()
+                if y_min is not None and y_max is not None:
+                    # remove possible question marks
+                    y_min = y_min.replace("?", "")
+                    y_max = y_max.replace("?", "")
+                    meeting_obstacles.append((float(y_min), float(y_max)))
+
+            meeting_obstacles.sort(key=lambda y: y[0])
+
+            if len(meeting_obstacles) == 0:
+                breakpoints[i].append((vertical_line, round((upper_bound + lower_bound) / 2, 2)))
+
+            else:
+                for j in range(len(meeting_obstacles) + 1):
+                    if j == 0:
+                        lower = lower_bound
+                    else:
+                        lower = max(lower, meeting_obstacles[j - 1][1])
+
+                    if j == len(meeting_obstacles):
+                        upper = upper_bound
+                    else:
+                        upper = meeting_obstacles[j][0]
+
+                    if upper > lower:
+                        breakpoints[i].append((vertical_line, round((upper + lower) / 2, 2)))
+
+        self.breakpoints = breakpoints
 
     def get_breakpoint_prompt(self):
+        assert self.breakpoints is not None, "Breakpoints not initialized"
         prompt = f"""
 Intermediate Breakpoints: You will be given multiple sets of breakpoints that divide the environment into sections. Choose one breakpoint from each set. The path should pass through one of the breakpoints of each set.
 """
@@ -189,7 +240,7 @@ Intermediate Breakpoints: You will be given multiple sets of breakpoints that di
                                    f'obstacle(s):\n')
 
                 for idx, obs in intersection:
-                    obstacle_report += f"\t\t\tObstacle {idx + 1}: ({-obs.b[0]}, {obs.b[1]}, {-obs.b[2]}, {obs.b[3]})\n"
+                    obstacle_report += f"\t\t\t\tObstacle {idx + 1}: {self.O[idx].tolist()})\n"
                 return obstacle_report, intersecting, i
         intersecting = False
         return 'No intersections found. You avoided all obstacles!', intersecting, -1

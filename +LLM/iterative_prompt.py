@@ -70,6 +70,7 @@ def iterative_prompt(env: Tuple[pc.Polytope, pc.Polytope, List[pc.Polytope], pc.
         Prompter = FullPathValidPathPrompt(model, new_Theta, new_G, new_O, new_workspace, use_history)
     elif prompting_strat == PromptStrategy.FULL_PATH_VALID_PATH_BREAK_POINTS:
         Prompter = FullPathBreakPointsValidSubPathPrompt(model, new_Theta, new_G, new_O, new_workspace, use_history, 2)
+        Prompter.init_breakpoints(Theta, G, O, workspace)
     else:
         raise ValueError(f"Invalid Iterative Prompt Strategy: {prompting_strat}")
 
