@@ -1,3 +1,4 @@
+import os
 import random
 from enum import Enum
 import importlib
@@ -45,13 +46,12 @@ class Env(Enum):
 
         # Define the obstacles
         O = []
-        generated_obstacles = 0
 
         lower_bound = np.array([0, 0])
         upper_bound = np.array([20, 20])
 
         grid_size = 15
-        overlap_size = 5
+        overlap_size = 10
 
         num_rows = int((upper_bound[1] - lower_bound[1]) / (grid_size - overlap_size))
         num_cols = int((upper_bound[0] - lower_bound[0]) / (grid_size - overlap_size))
@@ -68,7 +68,6 @@ class Env(Enum):
         np.random.shuffle(grid_cells)
         grid_cells = grid_cells[:num_obstacles]
 
-        obstacles = []
         for (x_min, y_min, x_max, y_max) in grid_cells:
             x_max, y_max = min(x_max, upper_bound[0]), min(y_max, upper_bound[1])
             # print(x_min, y_min, x_max, y_max)
@@ -151,8 +150,7 @@ def import_environment(env) -> Tuple[pc.Polytope, pc.Polytope, List[pc.Polytope]
 import random
 
 
-def create_environment_file(index, Theta, G, O, workspace):
-    filename = f"random_env_{index:02d}.py"
+def create_environment_file(index, Theta, G, O, workspace, filename=None):
     with open(filename, 'w') as f:
         f.write("import polytope as pc\n")
         f.write("import numpy as np\n\n")
@@ -166,8 +164,9 @@ def create_environment_file(index, Theta, G, O, workspace):
         f.write("G = pc.Polytope(A, b_goal)\n\n")
 
         for i, obstacle in enumerate(O):
+            f.write(f"A{i + 1} = np.array({obstacle.A.tolist()})\n")
             f.write(f"b{i + 1} = np.array({obstacle.b.tolist()})\n")
-            f.write(f"O{i + 1} = pc.Polytope(A, b{i + 1})\n")
+            f.write(f"O{i + 1} = pc.Polytope(A{i + 1}, b{i + 1})\n")
 
         f.write(f"O = [{', '.join([f'O{i + 1}' for i in range(len(O))])}]\n\n")
 
@@ -181,20 +180,26 @@ def create_environment_file(index, Theta, G, O, workspace):
 
 def generate_python_envs():
     random.seed(42)  # For reproducibility
-    for i in track(range(20)):
-        Theta, G, O, workspace = Env.generate_env(num_obstacles=i)
-        create_environment_file(i + 1, Theta, G, O, workspace)
-        print(f"Created environment_{i + 1:02d}.py")
+
+    for i in track(range(11)):
+        for j in range(20):
+            Theta, G, O, workspace = Env.generate_env(num_obstacles=i)
+            # plot_env(f"Random Environment {i}", workspace, G, Theta, O)
+            os.makedirs('envs/random_envs/' + f"{i}_Obstacles", exist_ok=True)
+            create_environment_file(i + 1, Theta, G, O, workspace,
+                                    filename=f"envs/random_envs/{i}_Obstacles/random_env_{j:02d}.py")
+            print(f"Created environment_{j + 1:02d} with {i} Obstacles.py")
 
 
 if __name__ == "__main__":
     from envs.plot_env import plot_env
 
-    for _ in range(10):
-        Theta, G, O, workspace = Env.generate_env(4)
-        plot_env("Random Environment", workspace, G, Theta, O)
+    #
+    # for _ in range(10):
+    #     Theta, G, O, workspace = Env.generate_env(4)
+    #     plot_env("Random Environment", workspace, G, Theta, O)
 
-    # generate_python_envs()
+    generate_python_envs()
     # for env in Env:
     #     Theta, G, O, workspace = import_environment(env)
     #     print(f'{env.value}: {Theta}, {G}, {O}, {workspace}')

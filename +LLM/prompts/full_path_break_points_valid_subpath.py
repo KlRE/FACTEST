@@ -74,7 +74,7 @@ class FullPathBreakPointsValidSubPathPrompt(PathPrompter):
 
         if intersecting:
             valid_subpath = path[:intersection_idx + 1]
-            subpath_feedback = f"""First segment to cross with an Obstacle (Polygon): Defined by the clockwise coordinates of its four vertices [(x1, y1), (x2, y2), (x3, y3), (x4, y4)]:
+            subpath_feedback = f"""First segment to cross with an Obstacle (Quadrilateral): Defined by the clockwise coordinates of its four vertices [(x1, y1), (x2, y2), (x3, y3), (x4, y4)]:
     {obstacle_feedback}\t\tLongest valid subpath from start: {valid_subpath}"""
 
         else:

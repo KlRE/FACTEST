@@ -243,11 +243,11 @@ class Prompter(ABC):
 
         task_description = f"""
 ## Provided Data
-    Start Position (Polygon): Defined by the clockwise coordinates of its four vertices [[x1, y1], [x2, y2], [x3, y3], [x4, y4]] = {self.Theta.tolist()}
-        Note: You can choose any point within this polygon to start the path.
-    Goal Position (Polygon): Defined by the clockwise coordinates of its four vertices [[x1, y1], [x2, y2], [x3, y3], [x4, y4]] = {self.G.tolist()}
-        Note: You can choose any point within this polygon to end the path.
-    Obstacles (Polygons):    Each obstacle is defined by the clockwise coordinates of its four vertices [[x1, y1], [x2, y2], [x3, y3], [x4, y4]]:
+    Start Position (Quadrilateral): Defined by the clockwise coordinates of its four vertices [[x1, y1], [x2, y2], [x3, y3], [x4, y4]] = {self.Theta.tolist()}
+        Note: You can choose any point within this Quadrilateral to start the path.
+    Goal Position (Quadrilateral): Defined by the clockwise coordinates of its four vertices [[x1, y1], [x2, y2], [x3, y3], [x4, y4]] = {self.G.tolist()}
+        Note: You can choose any point within this Quadrilateral to end the path.
+    Obstacles (Quadrilaterals): Each obstacle is defined by the clockwise coordinates of its four vertices [[x1, y1], [x2, y2], [x3, y3], [x4, y4]]:
 {o}
     """
         return task_description
