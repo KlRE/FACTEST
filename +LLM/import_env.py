@@ -71,7 +71,7 @@ class Env(Enum):
         obstacles = []
         for (x_min, y_min, x_max, y_max) in grid_cells:
             x_max, y_max = min(x_max, upper_bound[0]), min(y_max, upper_bound[1])
-            print(x_min, y_min, x_max, y_max)
+            # print(x_min, y_min, x_max, y_max)
             while True:  # Try multiple times to ensure obstacles are created
                 points = np.random.uniform([x_min, y_min], [x_max, y_max], (4, 2))
                 points = np.round(points, 1)

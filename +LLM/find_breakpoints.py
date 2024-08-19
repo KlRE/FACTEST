@@ -121,4 +121,4 @@ if __name__ == "__main__":
     for bp in breakpoints:
         for x, y in bp:
             ax.plot(x, y, 'bo')
-    plt.show()
+    fig.show()
