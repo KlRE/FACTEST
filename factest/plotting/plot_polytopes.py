@@ -5,19 +5,19 @@ from scipy.spatial import ConvexHull
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 
-def plotPoly(poly, ax=None, color='red'):  # Takes in tulip polytope and plots it
+def plotPoly(poly: pc.Polytope, ax=None, color='red'):  # Takes in tulip polytope and plots it
     if ax == None:
         fig, ax = plt.subplots()
 
     if type(poly) != list:
-        poly.plot(ax, color=color, alpha=0.25, linewidth=0, edgecolor=color)
+        poly.plot(ax, color=color, alpha=0.25, linestyle="solid", edgecolor=color, linewidth=0)
         # poly_verts = pc.extreme(poly)
-        # polyPatch = Polygon(poly_verts, facecolor=color, edgecolor=color, alpha=0.25)
+        # i polyPatch = Polygon(poly_verts, facecolor=color, edgecolor=color, alpha=0.25)
         # ax.add_patch(polyPatch)
 
     else:
         for polygon in poly:
-            polygon.plot(ax, color=color, alpha=0.25, linewidth=0, edgecolor=color)
+            polygon.plot(ax, color=color, alpha=0.25, linestyle="solid", edgecolor=color, linewidth=0)
             # poly_verts = pc.extreme(polygon)
             # polyPatch = Polygon(poly_verts, facecolor=color, edgecolor=color, alpha=0.25)
             # ax.add_patch(polyPatch)
