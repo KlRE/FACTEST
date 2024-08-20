@@ -85,6 +85,46 @@ def test_groq():
     print(chat_completion.choices[0].message.content)
 
 
+def test_chatgpt():
+    from openai import OpenAI
+    load_dotenv()
+    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+    completion = client.chat.completions.create(
+        model="gpt-4o-2024-08-06",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {
+                "role": "user",
+                "content": "Hello Chat."
+            }
+        ]
+    )
+
+    print(completion.choices[0].message.content)
+
+
+def test_claude():
+    from anthropic import Anthropic
+    load_dotenv()
+    client = Anthropic(
+        # This is the default and can be omitted
+        api_key=os.environ.get("ANTHROPIC_API_KEY"),
+    )
+
+    message = client.messages.create(
+        max_tokens=1024,
+        messages=[
+            {
+                "role": "user",
+                "content": "Hello, Claude",
+            }
+        ],
+        model="claude-3-haiku-20240307",
+    )
+    print(message.content[0].text)
+
+
 def random_test():
     from rich.progress import Progress
     from time import sleep
@@ -141,18 +181,8 @@ def plot_polytope(vertices):
 
 
 if __name__ == "__main__":
-    # Generate a valid 4-vertex convex polytope
-    vertices, poly = generate_convex_hull_vertices()
-
-    # Plot the polytope
-    plot_polytope(vertices)
-
-    # Plot the polytope using the polytope library
-    fix, ax = plt.subplots()
-    poly.plot(ax)
-    ax.autoscale()
-    plt.show()
-    print(pc.extreme(poly))
+    test_chatgpt()
+    # test_claude()
     # Generate random quadrilateral
     # A, b, vertices = generate_random_2d_polygon()
     #

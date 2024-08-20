@@ -8,7 +8,6 @@ import numpy as np
 import polytope as pc
 import matplotlib.pyplot as plt
 from rich.progress import track
-from scipy.spatial import ConvexHull
 
 
 class Env(Enum):
@@ -148,7 +147,25 @@ def import_environment(env) -> Tuple[pc.Polytope, pc.Polytope, List[pc.Polytope]
         raise ImportError(f'Failed to import environment {env}: {e}')
 
 
-import random
+def import_random_env(num_obstacles: int, index: int) -> Tuple[
+    pc.Polytope, pc.Polytope, List[pc.Polytope], pc.Polytope]:
+    """
+    Import a random environment with the given number of obstacles.
+    :param num_obstacles: The number of obstacles in the environment
+    :param index: The index of the random environment
+    """
+    try:
+        module_path = f'envs.random_envs.{num_obstacles}_Obstacles.random_env_{index:02d}'
+        module = importlib.import_module(module_path)
+        Theta: pc.Polytope = getattr(module, 'Theta')
+        G: pc.Polytope = getattr(module, 'G')
+        O: List[pc.Polytope] = getattr(module, 'O')
+        workspace: pc.Polytope = getattr(module, 'workspace')
+
+        return Theta, G, O, workspace
+
+    except AttributeError as e:
+        raise ImportError(f'Failed to import random environment {num_obstacles} with index {index}: {e}')
 
 
 def create_environment_file(index, Theta, G, O, workspace, filename=None):
@@ -183,7 +200,7 @@ def generate_python_envs():
     random.seed(42)  # For reproducibility
     np.random.seed(42)
     for i in track(range(11)):
-        for j in range(20):
+        for j in range(20, 40):
             Theta, G, O, workspace = Env.generate_env(num_obstacles=i)
             # plot_env(f"Random Environment {i}", workspace, G, Theta, O)
             os.makedirs('envs/random_envs/' + f"{i}_Obstacles", exist_ok=True)
@@ -197,12 +214,12 @@ def generate_python_envs():
 if __name__ == "__main__":
     from envs.plot_env import plot_env
 
-    #
-    # for _ in range(10):
-    #     Theta, G, O, workspace = Env.generate_env(4)
-    #     plot_env("Random Environment", workspace, G, Theta, O)
+    for i in track(range(11)):
+        for j in range(40):
+            Theta, G, O, workspace = import_random_env(i, j)
+            print(f'Successfully imported random environment {i} with {len(O)} obstacles and index {j}')
 
-    generate_python_envs()
+    # generate_python_envs()
     # for env in Env:
     #     Theta, G, O, workspace = import_environment(env)
     #     print(f'{env.value}: {Theta}, {G}, {O}, {workspace}')
