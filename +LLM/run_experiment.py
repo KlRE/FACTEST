@@ -3,7 +3,7 @@ import logging
 import os
 import time
 
-from import_env import Env, import_environment
+from import_env import Env, import_environment, import_random_env
 from iterative_prompt import iterative_prompt
 from datetime import datetime
 from rich.progress import Progress, TimeElapsedColumn
@@ -71,7 +71,7 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
                 pb.reset(t1)
 
                 for i in range(num_random_envs):
-                    env_polytopes = Env.generate_env(obs)
+                    env_polytopes = import_random_env(obs, i)
                     successful, num_iterations_ran, path_len = iterative_prompt(env_polytopes, f"Env {i}",
                                                                                 prompting_strat,
                                                                                 model, num_iterations, use_history,
@@ -86,7 +86,7 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
 
                 log_success_rate(successfuls, num_iterations_needed, path_lens, log_results_file)
                 log_results_file.write("-----------------------------\n")
-
+                log_results_file.flush()
                 pb.update(task_id=t2, completed=num_obs + 1)
 
             elapsed = pb.tasks[1].elapsed

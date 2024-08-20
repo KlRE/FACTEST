@@ -11,8 +11,10 @@ from typing import List, Tuple, Any
 import groq
 import ollama
 import vertexai
+from anthropic import Anthropic
 from dotenv import load_dotenv
 from groq import Groq
+from openai import OpenAI
 from supabase import create_client
 from vertexai.generative_models import GenerativeModel
 
@@ -29,6 +31,8 @@ class Model(Enum):
     GEMINI_1_5_FLASH = 'gemini-1.5-flash'
     GEMINI_1_5_PRO_VERTEX = 'gemini-1.5-pro-001'
     GEMINI_1_5_FLASH_VERTEX = 'gemini-1.5-flash-001'
+    GPT_4o = 'gpt-4o-2024-08-06'
+    SONNET = 'claude-3-5-sonnet-20240620'
 
     def __str__(self):
         return self.value
@@ -91,6 +95,16 @@ class Prompter(ABC):
 
             self.client = GenerativeModel(model.value)
 
+        elif model == Model.GPT_4o:
+            load_dotenv()
+            self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+        elif model == Model.SONNET:
+            load_dotenv()
+            self.client = Anthropic(
+                api_key=os.environ.get("ANTHROPIC_API_KEY"),
+            )
+
         self.Theta = Theta
         self.G = G
         self.O = O
@@ -136,7 +150,9 @@ class Prompter(ABC):
         if self.model == Model.LLAMA3_8b or self.model == Model.MISTRAL_NEMO_12b:
             return ollama.generate(model=self.model.value, prompt=prompt)['response']
 
-        elif self.model == Model.LLAMA3_1_8b_Groq or self.model == Model.LLAMA3_1_70b_Groq or self.model == Model.LLAMA3_70b_Groq:
+        elif (self.model == Model.LLAMA3_1_8b_Groq or self.model == Model.LLAMA3_1_70b_Groq
+              or self.model == Model.LLAMA3_70b_Groq or self.model == Model.GPT_4o):
+
             if retry:
                 time.sleep(4)
             chat_completion = self.client.chat.completions.create(
@@ -184,6 +200,19 @@ class Prompter(ABC):
             response = self.client.generate_content(prompt)
 
             return response.text
+
+        elif self.model == Model.SONNET:
+            response = self.client.messages.create(
+                max_tokens=1024,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt,
+                    }
+                ],
+                model="claude-3-haiku-20240307",
+            )
+            return response.content[0].text
 
     def prompt_model(self, prompt: str, max_attempts=20, log_message='Prompting model') -> Tuple[bool, Any]:
         """
