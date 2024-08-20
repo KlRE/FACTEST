@@ -6,6 +6,7 @@ from typing import Tuple, List
 
 import numpy as np
 import polytope as pc
+import matplotlib.pyplot as plt
 from rich.progress import track
 from scipy.spatial import ConvexHull
 
@@ -180,12 +181,14 @@ def create_environment_file(index, Theta, G, O, workspace, filename=None):
 
 def generate_python_envs():
     random.seed(42)  # For reproducibility
-
+    np.random.seed(42)
     for i in track(range(11)):
         for j in range(20):
             Theta, G, O, workspace = Env.generate_env(num_obstacles=i)
             # plot_env(f"Random Environment {i}", workspace, G, Theta, O)
             os.makedirs('envs/random_envs/' + f"{i}_Obstacles", exist_ok=True)
+            plot_env(f"RandomEnv_{i:02d}Obs_{j}", workspace, G, Theta, O, save=True, dir=f'./envs/plots/')
+            plt.close()
             create_environment_file(i + 1, Theta, G, O, workspace,
                                     filename=f"envs/random_envs/{i}_Obstacles/random_env_{j:02d}.py")
             print(f"Created environment_{j + 1:02d} with {i} Obstacles.py")
