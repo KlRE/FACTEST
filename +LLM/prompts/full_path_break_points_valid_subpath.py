@@ -50,7 +50,8 @@ class FullPathBreakPointsValidSubPathPrompt(PathPrompter):
     Breakpoints: Ensure the path passes through one of the breakpoints of each set. Not all of them lead to a valid path, so you may need to adjust the path accordingly.
     """
 
-    def __init__(self, model, Theta, G, O, workspace, use_history, num_sections=3):
+    def __init__(self, model, Theta: pc.Polytope, G: pc.Polytope, O: List[pc.Polytope], workspace: pc.Polytope,
+                 use_history, num_sections=3):
         super().__init__(model, Theta, G, O, workspace, use_history)
         self.breakpoints = None
         self.num_sections = num_sections
@@ -62,14 +63,14 @@ class FullPathBreakPointsValidSubPathPrompt(PathPrompter):
             start_feedback = "Correct, The path starts in the correct start set."
             instruct_start = ""
         else:
-            start_feedback = f"Incorrect, The path does not start in the correct start set {self.Theta}."
+            start_feedback = f"Incorrect, The path does not start in the correct start set {self.Theta.tolist()}."
             instruct_start = "Start Position: Begin within the specified rectangular start set.\n"
 
         if ends_in_goal:
             end_feedback = "Correct, The path ends inside the goal set."
             instruct_end = ""
         else:
-            end_feedback = f"Incorrect, The path does not end inside the goal set {self.G}."
+            end_feedback = f"Incorrect, The path does not end inside the goal set {self.G.tolist()}."
             instruct_end = "Goal Position: End within the specified rectangular goal set.\n"
 
         if intersecting:
@@ -135,14 +136,11 @@ class FullPathBreakPointsValidSubPathPrompt(PathPrompter):
         workspace_ymin, workspace_ymax = -workspace.b[2], workspace.b[3]
 
         signed_segment_length = ((G_xmin + G_xmax) / 2 - (Theta_xmax + Theta_xmin) / 2) / self.num_sections
-        print(signed_segment_length)
         breakpoints = [[] for _ in range(self.num_sections - 1)]
 
         upper_bound, lower_bound = workspace_ymax, workspace_ymin
-        print(f"upper_bound: {upper_bound}, lower_bound: {lower_bound}")
         for i in range(self.num_sections - 1):
             vertical_line = round(Theta_xmin + (i + 1) * signed_segment_length, 2)
-            print(f"vertical_line: {vertical_line}")
 
             meeting_obstacles = []
 

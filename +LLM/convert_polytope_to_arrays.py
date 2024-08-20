@@ -1,3 +1,4 @@
+import numpy as np
 from polytope import Polytope
 import polytope as pc
 from typing import List
@@ -23,9 +24,9 @@ def convert_env_polytope_to_arrays(Theta: Polytope, G: Polytope, O: List[Polytop
     # O = [format_tuple((-obs.b[0], obs.b[1], -obs.b[2], obs.b[3])) for obs in O]
     # workspace = (-workspace.b[0], workspace.b[1], -workspace.b[2], workspace.b[3])
 
-    Theta = polytope_to_tuple(Theta)
-    G = polytope_to_tuple(G)
-    O = [polytope_to_tuple(obs) for obs in O]
-    workspace = polytope_to_tuple(workspace)
+    Theta = np.round(polytope_to_tuple(Theta), 2)
+    G = np.round(polytope_to_tuple(G), 2)
+    O = [np.round(polytope_to_tuple(obs), 2) for obs in O]
+    workspace = np.round(polytope_to_tuple(workspace))
     # print(Theta, G, O)
     return Theta, G, O, workspace
