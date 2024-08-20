@@ -3,7 +3,6 @@ import os
 from datetime import datetime
 from typing import Tuple, List
 
-import ollama
 import re
 import logging
 import polytope as pc

@@ -1,6 +1,6 @@
 # Libraries used:
 
-Everything has been developed with Python3.9
+Everything has been developed with Python3.10
 and has been tested on Ubuntu 22.04.4 LTS
 
 ## General libraries
@@ -30,7 +30,8 @@ This version of FACTEST has been implemented with three different solvers.
 ### FACTEST + LLM
 
 Set the working directory to ./FACTEST/+LLM so that Python can find the necessary modules.
-It utilizes z3, so you need to install it.
+It utilizes z3, so you need to install it. Install the other dependencies with Conda:
+````conda env create -f env.yml````
 To test the functions you can either use FACTEST/+LLM/iterative_prompt.py or FACTEST/+LLM/run_experiment.
 Depending on the model you want to use, you have to either install ollama with the fitting model or put an API key into
 the .env file.
