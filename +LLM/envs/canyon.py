@@ -7,6 +7,12 @@ A = np.array([[-1, 0],
               [0, -1],
               [0, 1]])
 
+theta = np.radians(30)
+R = np.array([[np.cos(theta), -np.sin(theta)],
+              [np.sin(theta), np.cos(theta)]])
+
+# Rotate the A matrix
+A = A @ R.T
 b0 = np.array([0, 1, 0, 1])
 Theta = pc.Polytope(A, b0)
 

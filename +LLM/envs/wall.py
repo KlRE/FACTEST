@@ -15,11 +15,12 @@ G = pc.Polytope(A, b1)
 
 b2 = np.array([-4, 5, 3, 4])
 
-O1 = pc.Polytope(A, b2)
+o1_vertices = [[2, -4], [3, -4], [7, 4], [6, 4]]
+O1 = pc.qhull(np.array(o1_vertices))
 
 O = [O1, ]
 
-workspace = pc.Polytope(A, np.array([0, 9, 5, 6]))
+workspace = pc.Polytope(A, np.array([0, 9, 6, 6]))
 
 if __name__ == "__main__":
     from plot_env import plot_env

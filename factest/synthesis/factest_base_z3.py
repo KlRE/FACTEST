@@ -1,6 +1,8 @@
 import sys, os
 from typing import List
 
+import z3
+
 currFile = os.path.abspath(__file__)
 modelPath = currFile.replace('/factest/synthesis/factest_base_z3.py', '')
 sys.path.append(modelPath)
@@ -101,6 +103,7 @@ class FACTEST_Z3():
         for num_segs in range(1, self.seg_max + 1):
             self.x_ref_terms = [[z3.Real('xref_%s[%s]' % (j + 1, i)) for j in range(self.dims)] for i in
                                 range(num_segs + 1)]
+            self.a_terms = [z3.Real(f'a_{i}') for i in range(num_segs)]
             self.s = z3.Solver()
 
             if self.model != None:

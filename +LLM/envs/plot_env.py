@@ -11,7 +11,7 @@ sys.path.append(factestPath2)
 from factest.plotting.plot_polytopes import plotPoly, plotPoly_3d
 
 
-def plot_env(title, workspace, G, Theta, O, save=False, plot3d=False, dir='./plots/'):
+def plot_env(title, workspace, G, Theta, O, save=False, plot3d=False, dir='./plots/', show=True):
     """
     Plot the environment with the workspace, goal region, initial region, and obstacles
     """
@@ -39,8 +39,11 @@ def plot_env(title, workspace, G, Theta, O, save=False, plot3d=False, dir='./plo
         i += 1
 
     ax.autoscale_view()
+    # plt.axis('equal')
     plt.title(title)
-    # plt.show()
+
+    if show:
+        plt.show()
 
     if save:
         os.makedirs(dir, exist_ok=True)
