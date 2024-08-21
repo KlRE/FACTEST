@@ -10,7 +10,7 @@ def plotPoly(poly: pc.Polytope, ax=None, color='red'):  # Takes in tulip polytop
         fig, ax = plt.subplots()
 
     if type(poly) != list:
-        poly.plot(ax, color=color, alpha=0.25, linestyle="solid", edgecolor=color, linewidth=0)
+        poly.plot(ax, color=color, alpha=0.25, linestyle="solid", edgecolor="None", linewidth=0)
         # poly_verts = pc.extreme(poly)
         # i polyPatch = Polygon(poly_verts, facecolor=color, edgecolor=color, alpha=0.25)
         # ax.add_patch(polyPatch)
