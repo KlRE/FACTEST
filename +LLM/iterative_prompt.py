@@ -3,7 +3,6 @@ import os
 from datetime import datetime
 from typing import Tuple, List
 
-import ollama
 import re
 import logging
 import polytope as pc
@@ -111,8 +110,7 @@ def iterative_prompt(env: Tuple[pc.Polytope, pc.Polytope, List[pc.Polytope], pc.
         path = path_from_file(f"{log_directory}/path.txt")
         logging.info(f"Continuing from path: {path}")
 
-    for i in range(num_iterations):
-        logging.info(f"Iteration {i + 1}")
+    for i in range(num_iterations + 1):  # +1 to include the last iteration
         intersections, successful, starts_in_init, ends_in_goal = evaluate_waypoints(path, log_directory,
                                                                                      Theta, G, O, workspace,
                                                                                      iteration=i + 1)
@@ -121,10 +119,13 @@ def iterative_prompt(env: Tuple[pc.Polytope, pc.Polytope, List[pc.Polytope], pc.
         if successful:
             logging.info("Path is successful")
             return True, i + 1, len(path)
-        successful_prompt, path = Prompter.prompt_feedback(path, intersections, starts_in_init, ends_in_goal)
-        if not successful_prompt:
-            logging.warning("Failed to get feedback prompt")
-            return False, i + 1, len(path)
+
+        if i != num_iterations:  # Don't prompt on the last iteration, because feedback will not be provided
+            logging.info(f"Feedback Iteration {i + 1}")
+            successful_prompt, path = Prompter.prompt_feedback(path, intersections, starts_in_init, ends_in_goal)
+            if not successful_prompt:
+                logging.warning("Failed to get feedback prompt")
+                return False, i + 1, len(path)
 
     return False, num_iterations, len(path)
 
