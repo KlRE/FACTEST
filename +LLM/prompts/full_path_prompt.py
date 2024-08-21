@@ -6,22 +6,22 @@ from prompts.examples import full_path_ex
 
 class FullPathPrompt(PathPrompter):
     task_description = f"""
-    # Motion Planning Task
-    ## Goal: Come up with a path that starts in the start set, ends in the goal set, and avoids obstacles.
+# Motion Planning Task
+## Goal: Come up with a path that starts in the start set, ends in the goal set, and avoids obstacles.
 
-    ## Path Requirements
-        Waypoints: The path should be represented as an array of waypoints and the path will be constructed by connecting these waypoints linearly.
-        Non-Crossing: Ensure the path and especially the linearly connected segments do not cross any obstacles. Make sure to keep a distance from the obstacles, because touching the obstacles is considered as crossing.
-        Start and End: The path must start within the start set and end in the goal set.
-        """
+## Path Requirements
+    Waypoints: The path should be represented as an array of waypoints and the path will be constructed by connecting these waypoints linearly.
+    Non-Crossing: Ensure the path and especially the linearly connected segments do not cross any obstacles. Make sure to keep a distance from the obstacles, because touching the obstacles is considered as crossing.
+    Start and End: The path must start within the start set and end in the goal set.
+    """
 
     init_prompt = """
-    ## Instructions
-        Path Array: Output the path as an array of waypoints.
-        Start and End: The path must begin at any point within the start set and end at any point within the goal set.
-        Obstacle Avoidance: Verify that the path does not intersect any obstacles.
-        No code: Do not include any code in your response and do not try solve this with an algorithm.
-        """
+## Instructions
+    Path Array: Output the path as an array of waypoints.
+    Start and End: The path must begin at any point within the start set and end at any point within the goal set.
+    Obstacle Avoidance: Verify that the path does not intersect any obstacles.
+    No code: Do not include any code in your response and do not try solve this with an algorithm.
+    """
 
     feedback_prompt = """
 ## Your generated path:
@@ -35,6 +35,7 @@ class FullPathPrompt(PathPrompter):
 
 ## Instructions for Correction
     No code: Do not include any code in your response.
+    Chain of Thought: Explain your thought process and the changes you made to the path. Analyze the spatial relationships between the obstacles and work out segments that are valid and invalid.
     {instruct_start}{instruct_end}Obstacle Avoidance: Adjust the path to avoid intersecting obstacles. You may add waypoints at problematic waypoints to move around obstacles.
     """
 
@@ -45,14 +46,14 @@ class FullPathPrompt(PathPrompter):
             start_feedback = "Correct, The path starts in the correct start set."
             instruct_start = ""
         else:
-            start_feedback = f"Incorrect, The path does not start in the correct start set {self.Theta}."
+            start_feedback = f"Incorrect, The path does not start in the correct start set {self.Theta.tolist()}."
             instruct_start = "Start Position: Begin within the specified rectangular start set.\n"
 
         if ends_in_goal:
             end_feedback = "Correct, The path ends inside the goal set."
             instruct_end = ""
         else:
-            end_feedback = f"Incorrect, The path does not end inside the goal set {self.G}."
+            end_feedback = f"Incorrect, The path does not end inside the goal set {self.G.tolist()}."
             instruct_end = "Goal Position: End within the specified rectangular goal set.\n"
 
         feedback = self.feedback_prompt.format(path=path, obstacle_feedback=obstacle_feedback, Theta=self.Theta,

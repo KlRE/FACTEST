@@ -120,7 +120,7 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
 
                 log_success_rate(successfuls, num_iterations_needed, path_lens, log_results_file)
                 log_results_file.write("-----------------------------\n")
-
+                log_results_file.flush()
                 pb.update(task_id=t2, completed=num_env + 1)
 
             elapsed = pb.tasks[1].elapsed
