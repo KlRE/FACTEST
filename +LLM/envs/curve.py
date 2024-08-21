@@ -1,7 +1,7 @@
 import polytope as pc
 import numpy as np
 
-title = '2D Curve Environment'
+title = 'Curve'
 A = np.array([[-1, 0],
               [1, 0],
               [0, -1],

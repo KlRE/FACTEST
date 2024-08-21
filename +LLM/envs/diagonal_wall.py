@@ -1,7 +1,7 @@
 import polytope as pc
 import numpy as np
 
-title = '2D Diagonal Wall Environment'
+title = 'Diagonal Wall'
 A = np.array([[-1, 0],
               [1, 0],
               [0, -1],

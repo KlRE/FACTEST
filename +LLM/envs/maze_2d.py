@@ -3,7 +3,7 @@ import numpy as np
 
 from math import sqrt
 
-title = '2D Maze Environment'
+title = 'Maze'
 A = np.array([[-1, 0],
               [1, 0],
               [0, -1],
