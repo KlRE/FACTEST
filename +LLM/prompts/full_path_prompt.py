@@ -29,7 +29,7 @@ class FullPathPrompt(PathPrompter):
 
 ## Feedback
     Start set: {start_feedback}
-    Obstacle Avoidance (Rectangular Sets): (xmin, xmax, ymin, ymax):
+    Obstacle Avoidance (Quadrilateral): Defined by the clockwise coordinates of its four vertices [[x1, y1], [x2, y2], [x3, y3], [x4, y4]]:
 {obstacle_feedback}
     End set: {end_feedback}
 

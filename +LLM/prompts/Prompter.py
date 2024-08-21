@@ -401,7 +401,7 @@ class PathPrompter(Prompter, ABC):
                     f'\t\tSegment {i + 1} between points {path[i]} and {path[i + 1]} intersects with obstacle(s):')
                 for idx, obs in intersection:
                     obstacle_report.append(
-                        f"\t\t\tObstacle {idx + 1}: ({-obs.b[0]}, {obs.b[1]}, {-obs.b[2]}, {obs.b[3]})")
+                        f"\t\t\tObstacle {idx + 1}: {self.O[idx].tolist()}")
 
         if len(obstacle_report) == 0:
             intersecting = False
