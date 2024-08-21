@@ -1,7 +1,7 @@
 import polytope as pc
 import numpy as np
 
-title = '2D Box Obstacle Boundary Environment'
+title = '2D Box Boundary Environment'
 A = np.array([[-1, 0],
               [1, 0],
               [0, -1],

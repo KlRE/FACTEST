@@ -10,11 +10,14 @@ sys.path.append(factestPath2)
 
 from factest.plotting.plot_polytopes import plotPoly, plotPoly_3d
 
+plt.rc('axes', titlesize=25)
+
 
 def plot_env(title, workspace, G, Theta, O, save=False, plot3d=False, dir='./plots/', show=True):
     """
     Plot the environment with the workspace, goal region, initial region, and obstacles
     """
+
     if plot3d:
         plotPolytope = plotPoly_3d
         fig = plt.figure()
@@ -59,17 +62,17 @@ if __name__ == "__main__":
     import os
     import importlib.util
 
-    save = False  # if save is True, it will REMOVE all plot files from the plots directory
+    save = True  # if save is True, it will REMOVE all plot files from the plots directory
 
-    if save:  # only remove files
-        for file in os.listdir('./plots/'):
-            os.remove('./plots/' + file)
+    # if save:  # only remove files
+    #     for file in os.listdir('./plots/'):
+    #         os.remove('./plots/' + file)
 
     for env in os.listdir('.'):
-        if env.endswith('.py') and env != '__init__.py' and env != 'plot_env.py':
+        if env.endswith('.py') and env != '__init__.py' and env != 'plot_env.py' and "3d" not in env:
             spec = importlib.util.spec_from_file_location(env, env)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
 
             print('plotting ', env)
-            plot_env(module.title, module.workspace, module.G, module.Theta, module.O, save)
+            plot_env(module.title, module.workspace, module.G, module.Theta, module.O, save, dir='./manual/plots/')
