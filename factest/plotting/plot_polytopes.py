@@ -1,26 +1,19 @@
+from typing import Union, List
+
 import polytope as pc
 import numpy as np
-from matplotlib.patches import Polygon
-from scipy.spatial import ConvexHull
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 
-def plotPoly(poly: pc.Polytope, ax=None, color='red'):  # Takes in tulip polytope and plots it
+def plotPoly(poly: Union[pc.Polytope, List[pc.Polytope]], ax=None, color='red'):  # Takes in tulip polytope and plots it
     if ax == None:
         fig, ax = plt.subplots()
 
-    if type(poly) != list:
+    if isinstance(poly, pc.Polytope):
         poly.plot(ax, color=color, alpha=0.25, linestyle="solid", edgecolor="None", linewidth=0)
-        # poly_verts = pc.extreme(poly)
-        # i polyPatch = Polygon(poly_verts, facecolor=color, edgecolor=color, alpha=0.25)
-        # ax.add_patch(polyPatch)
 
     else:
         for polygon in poly:
             polygon.plot(ax, color=color, alpha=0.25, linestyle="solid", edgecolor=color, linewidth=0)
-            # poly_verts = pc.extreme(polygon)
-            # polyPatch = Polygon(poly_verts, facecolor=color, edgecolor=color, alpha=0.25)
-            # ax.add_patch(polyPatch)
 
 
 def plotPoly_3d(poly, ax, color='r'):

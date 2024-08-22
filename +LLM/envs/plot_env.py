@@ -1,14 +1,10 @@
 import matplotlib.pyplot as plt
 
-import os
-import sys
+from typing import Union, List
 
-currFile = os.path.abspath(__file__)
-
-factestPath2 = currFile.replace('/+LLM/envs/plot_env.py', '')
-sys.path.append(factestPath2)
-
-from factest.plotting.plot_polytopes import plotPoly, plotPoly_3d
+import polytope as pc
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from scipy.spatial import ConvexHull
 
 plt.rc('axes', titlesize=35)
 
@@ -54,6 +50,33 @@ def plot_env(title, workspace, G, Theta, O, save=False, plot3d=False, dir='./plo
         fig.savefig(path)
 
     return fig, ax
+
+
+
+def plotPoly(poly: Union[pc.Polytope, List[pc.Polytope]], ax=None, color='red'):  # Takes in tulip polytope and plots it
+    if ax == None:
+        fig, ax = plt.subplots()
+
+    if isinstance(poly, pc.Polytope):
+        poly.plot(ax, color=color, alpha=0.25, linestyle="solid", edgecolor="None", linewidth=0)
+
+    else:
+        for polygon in poly:
+            polygon.plot(ax, color=color, alpha=0.25, linestyle="solid", edgecolor=color, linewidth=0)
+
+
+def plotPoly_3d(poly, ax, color='r'):
+    cubes = [pc.extreme(poly)]
+    for cube in cubes:
+        hull = ConvexHull(cube)
+
+        # draw the polygons of the convex hull
+        for s in hull.simplices:
+            tri = Poly3DCollection([cube[s]])
+            tri.set_edgecolor(color)
+            tri.set_facecolor(color)
+            tri.set_alpha(0.5)
+            ax.add_collection3d(tri)
 
 
 if __name__ == "__main__":
