@@ -1,7 +1,9 @@
 from typing import List
 import matplotlib.pyplot as plt
-from factest.plotting.plot_polytopes import plotPoly
+
 from z3 import *
+
+from envs.plot_env import plotPoly
 
 SAVE_PATH = '../old_files/+llm/images/llama3/1'
 
