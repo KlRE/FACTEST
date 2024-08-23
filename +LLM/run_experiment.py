@@ -4,7 +4,7 @@ import os
 import time
 from typing import List
 
-from import_env import Env, import_environment, import_random_env
+from import_env import Env, import_environment, import_random_env, get_random_env_img_path
 from iterative_prompt import iterative_prompt
 from datetime import datetime
 from rich.progress import Progress, TimeElapsedColumn
@@ -73,9 +73,10 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
 
                 for i in range(num_random_envs):
                     env_polytopes = import_random_env(obs, i)
+                    init_img_path = get_random_env_img_path(num_obs, i) if use_imgs else None
                     successful, num_iterations_ran, path_len = iterative_prompt(env_polytopes, f"Env {i}",
                                                                                 prompting_strat,
-                                                                                model, num_iterations, use_history,
+                                                                                model, num_iterations, use_history, init_img_path,
                                                                                 directory=f"{path}/{obs}_Obs")
                     log_results_file.write(
                         f"Random Env {i}: {successful} after {num_iterations_ran} iterations with path length {path_len}\n")

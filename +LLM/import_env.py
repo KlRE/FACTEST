@@ -184,6 +184,10 @@ def import_random_env(num_obstacles: int, index: int) -> Tuple[
     except AttributeError as e:
         raise ImportError(f'Failed to import random environment {num_obstacles} with index {index}: {e}')
 
+def get_random_env_img_path(num_obstacles: int, index: int):
+    path = f'envs/plots/RandomEnv_{num_obstacles:02d}Obs_{index}.png'
+    return path
+
 
 def create_environment_file(index, Theta, G, O, workspace, filename=None):
     with open(filename, 'w') as f:
@@ -231,13 +235,21 @@ def generate_python_envs():
 if __name__ == "__main__":
     from envs.plot_env import plot_env
 
-    # for i in track(range(11)):
-    #     for j in range(40):
-    #         Theta, G, O, workspace = import_random_env(i, j)
-    #         print(f'Successfully imported random environment {i} with {len(O)} obstacles and index {j}')
+    for i in track(range(11)):
+        for j in range(40):
+            # Theta, G, O, workspace = import_random_env(i, j)
+            # print(f'Successfully imported random environment {i} with {len(O)} obstacles and index {j}')
+            path = get_random_env_img_path(i, j)
+            with open(path, 'rb') as file:
+                img = file.read()
+                print(img[:10])
+            print(path)
 
-    for env in Env:
-        print(env.get_image_base64())
+    # for env in Env:
+    #     print(env.get_image_base64())
+
+
+
     # generate_python_envs()
     # for env in Env:
     #     Theta, G, O, workspace = import_environment(env)
