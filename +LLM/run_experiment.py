@@ -1,7 +1,8 @@
 import argparse
-import logging
+
 import os
 import time
+from typing import List
 
 from import_env import Env, import_environment, import_random_env
 from iterative_prompt import iterative_prompt
@@ -40,7 +41,7 @@ def log_success_rate(successfuls, num_iterations_needed, path_lens, log_results_
 
 
 def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, description="",
-                   model=Model.MISTRAL_NEMO_12b, use_history=False, specific_envs=[], evaluations_per_env=1,
+                   model=Model.MISTRAL_NEMO_12b, use_history=False, use_imgs=False, specific_envs=[], evaluations_per_env=1,
                    use_random_env=False, random_env_obstacles=[3], num_random_envs=10):
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     if use_random_env:
@@ -94,7 +95,7 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
             log_results_file.write(f"Total time: {s_time}\n")
 
         else:
-            envs = Env if specific_envs == [] else specific_envs
+            envs: List[Env] = Env if specific_envs == [] else specific_envs
             t1 = pb.add_task('Prompting Env', total=evaluations_per_env)
             t2 = pb.add_task('Run experiment', total=len(envs))
 
@@ -106,9 +107,10 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
 
                 for i in range(evaluations_per_env):
                     env_polytopes = import_environment(env)
+                    init_img_path = env.get_image_path() if use_imgs else None
                     successful, num_iterations_ran, path_len = iterative_prompt(env_polytopes, env.value,
                                                                                 prompting_strat, model,
-                                                                                num_iterations, use_history,
+                                                                                num_iterations, use_history, init_img_path,
                                                                                 directory=path)
                     log_results_file.write(
                         f"{env.value} {i + 1}: {successful} after {num_iterations_ran} iterations with path length {path_len}\n")
@@ -135,6 +137,7 @@ if __name__ == "__main__":
     parser.add_argument('--prompting_strat', type=PromptStrategy, choices=list(PromptStrategy),
                         default=PromptStrategy.FULL_PATH, help='Prompt strategy to use.')
     parser.add_argument('--num_iterations', type=int, default=30, help='Number of iterations to run.')
+    parser.add_argument('--use_imgs', action='store_true', help='Use images during prompting.')
     parser.add_argument('--use_history', action='store_true', help='Use history in the prompter.')
     parser.add_argument('--description', type=str, default="", help='Description of the experiment.')
     parser.add_argument('--model', type=Model, choices=list(Model), default=Model.MISTRAL_NEMO_12b,
@@ -150,7 +153,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     run_experiment(prompting_strat=args.prompting_strat, num_iterations=args.num_iterations,
-                   use_history=args.use_history, specific_envs=args.specific_envs,
+                   use_history=args.use_history, use_imgs=args.use_imgs, specific_envs=args.specific_envs,
                    evaluations_per_env=args.evaluations_per_env,
                    description=args.description, model=args.model, use_random_env=args.use_random_env,
                    random_env_obstacles=args.random_env_obstacles, num_random_envs=args.num_random_envs)

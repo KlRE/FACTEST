@@ -1,3 +1,4 @@
+import base64
 import json
 import logging
 import os
@@ -16,7 +17,7 @@ from dotenv import load_dotenv
 from groq import Groq
 from openai import OpenAI
 from supabase import create_client
-from vertexai.generative_models import GenerativeModel
+from vertexai.generative_models import GenerativeModel, Image
 
 
 # added /home/erik/miniconda3/envs/factest/lib/python3.10/site-packages/supafunc/_sync.py line 32 timeout=300
@@ -92,8 +93,8 @@ class Prompter(ABC):
 
         elif model == Model.GEMINI_1_5_PRO_VERTEX or model == Model.GEMINI_1_5_FLASH_VERTEX:
             vertexai.init(project="gentle-keyword-432706-b3", location="us-central1")
-
             self.client = GenerativeModel(model.value)
+            self.curr_loc = 1
 
         elif model == Model.GPT_4o:
             load_dotenv()
@@ -143,11 +144,16 @@ class Prompter(ABC):
         """
         pass
 
-    def _prompt_model(self, prompt: str, retry):
+    def _prompt_model(self, prompt: str, retry, image_path = None):
         """
         Prompt the model depending on the model type
         """
+        if image_path is not None:
+            logging.info(f"Prompting with Image from {image_path}")
+
         if self.model == Model.LLAMA3_8b or self.model == Model.MISTRAL_NEMO_12b:
+            if image_path:
+                logging.warning("Image not supported for LLAMA3_8b and MISTRAL_NEMO_12b")
             return ollama.generate(model=self.model.value, prompt=prompt)['response']
 
         elif (self.model == Model.LLAMA3_1_8b_Groq or self.model == Model.LLAMA3_1_70b_Groq
@@ -155,15 +161,39 @@ class Prompter(ABC):
 
             if retry:
                 time.sleep(4)
-            chat_completion = self.client.chat.completions.create(
-                messages=[
-                    {
-                        "role": "user",
-                        "content": prompt,
-                    }
-                ],
-                model=self.model.value,
-            )
+            if not (image_path and self.model == Model.GPT_4o):
+                chat_completion = self.client.chat.completions.create(
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": prompt,
+                        }
+                    ],
+                    model=self.model.value,
+                )
+            else:
+                with open("/home/erik/FACTEST/+LLM/envs/plots/manual/Box.png", mode='rb') as file:
+                    img = file.read()
+                img_b64 = base64.b64encode(img).decode('utf-8')
+                chat_completion = self.client.chat.completions.create(
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": prompt
+                                },
+                                {
+                                    "type": "image_url",
+                                    "image_url": f"data:image/png;base64,{img_b64}"
+                                }
+
+                            ],
+                        }
+                    ],
+                    model=self.model.value,
+                )
 
             return chat_completion.choices[0].message.content
 
@@ -191,13 +221,20 @@ class Prompter(ABC):
                 return json.loads(response)["text"]
 
         elif self.model == Model.GEMINI_1_5_PRO_VERTEX or self.model == Model.GEMINI_1_5_FLASH_VERTEX:
+            locations = ["us-central1", "europe-west1", "europe-west2", "europe-west4", "europe-west6"]
             if retry:
                 time.sleep(self.sleeptime)
-                self.sleeptime *= 1.3
+                vertexai.init(project="gentle-keyword-432706-b3", location=locations[self.curr_loc])
+                self.curr_loc = (self.curr_loc + 1) % len(locations)
+                logging.info(f"Switching to Gemini location {locations[self.curr_loc]}")
             else:
                 self.sleep_time = 5
 
-            response = self.client.generate_content(prompt)
+            if image_path:
+                image = Image.load_from_file(image_path)
+                response = self.client.generate_content([prompt, image])
+            else:
+                response = self.client.generate_content(prompt)
 
             return response.text
 
@@ -214,10 +251,11 @@ class Prompter(ABC):
             )
             return response.content[0].text
 
-    def prompt_model(self, prompt: str, max_attempts=20, log_message='Prompting model') -> Tuple[bool, Any]:
+    def prompt_model(self, prompt: str, image_path=None, max_attempts=30, log_message='Prompting model') -> Tuple[bool, Any]:
         """
         Prompt the model with the given prompt and parse the response
         :param prompt: Prompt
+        :param image_path: Image path
         :param max_attempts: Maximum number of attempts
         :param log_message: Log message
         :return: (bool) Successful, (Any) Parsed response
@@ -228,7 +266,7 @@ class Prompter(ABC):
         retry = False
         for i in range(max_attempts):
             try:
-                response = self._prompt_model(prompt, retry)
+                response = self._prompt_model(prompt, retry, image_path=image_path)
                 logging.info(response)
                 parsed_response = self.parse_response(response)
                 logging.info(f'Parsed response: {parsed_response}')
@@ -242,15 +280,15 @@ class Prompter(ABC):
             retry = True
         return successful, None
 
-    def prompt_init(self):
+    def prompt_init(self, img_path=None):
         """
         Prompt the initial instruction
         :return: Parsed response
         """
-        init_prompt = self.get_init_prompt()
-        return self.prompt_model(init_prompt)
+        init_prompt = self.get_init_prompt(use_img=img_path is not None)
+        return self.prompt_model(init_prompt, image_path=img_path)
 
-    def get_init_prompt(self):
+    def get_init_prompt(self, use_img=False):
         """
         Get the initial prompt for the task
         :return: Initial prompt
@@ -259,7 +297,8 @@ class Prompter(ABC):
         task_data = self.get_task_data()
         init_prompt = self.get_init_instruction()
         path_format = self.get_output_format()
-        return task_desc + task_data + init_prompt + path_format
+        image_description = self.get_image_description(path_given=False) if use_img else ""
+        return task_desc + task_data + image_description + init_prompt + path_format
 
     def get_task_data(self):
         """
@@ -280,6 +319,18 @@ class Prompter(ABC):
 {o}
     """
         return task_description
+
+    def get_image_description(self, path_given: bool):
+        image_description = f"""
+## Provided Image
+    The attached image shows the environment with the start set, goal set, and obstacles. The start set is colored blue, the goal set is colored green, and the obstacles are colored red."""
+        if path_given:
+            image_description += f"""
+    The image also displays the path you provided, represented by blue waypoints that are connected in a straight line by a blue line.
+"""
+        else:
+            image_description += "\n"
+        return image_description
 
     def get_example_solution(self):
         """
@@ -305,34 +356,38 @@ class PathPrompter(Prompter, ABC):
         :param intersections: Intersections
         :param starts_in_init: Starts in initial set
         :param ends_in_goal: Ends in goal set
+        :param use_img: Use image
         :return: Feedback
         """
         pass
 
-    def prompt_feedback(self, path, intersections, starts_in_init, ends_in_goal):
+    def prompt_feedback(self, path, intersections, starts_in_init, ends_in_goal, path_img=None):
         """
         Prompt the feedback
         :param path: Path
         :param intersections: Intersections
         :param starts_in_init: Starts in initial set
         :param ends_in_goal: Ends in goal set
+        :param path_img: image path
         """
-        feedback = self.get_feedback_prompt(path, intersections, starts_in_init, ends_in_goal)
-        return self.prompt_model(feedback)
+        feedback = self.get_feedback_prompt(path, intersections, starts_in_init, ends_in_goal, use_img=path_img is not None)
+        return self.prompt_model(feedback, path_img)
 
     def get_feedback_prompt(self, path: List[Tuple], intersections, starts_in_init: bool,
-                            ends_in_goal: bool):
+                            ends_in_goal: bool, use_img: bool):
         """
         Get the feedback prompt for the given environment
         :param path: Path
         :param intersections: Intersections
         :param starts_in_init: Starts in initial set
         :param ends_in_goal: Ends in goal set
+        :param use_img: Use image
         """
         task_desc = self.get_task_description()
         task_data = self.get_task_data()
         feedback_str = self.get_feedback(path, intersections, starts_in_init, ends_in_goal)
         path_format = self.get_output_format()
+        image_description = self.get_image_description(path_given=True) if use_img else ""
         history_str = ""
         if self.use_history:
             if len(self.history) > 0:
@@ -342,7 +397,7 @@ class PathPrompter(Prompter, ABC):
                 history_str = "\n\n## History\n" + history_str
             self.history.append((path, "\n".join(feedback_str.split("\n")[:-4])))
 
-        return task_desc + task_data + feedback_str + path_format + history_str
+        return task_desc + task_data + image_description + feedback_str + path_format + history_str
 
     def parse_response(self, response):
         """

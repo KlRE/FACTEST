@@ -1,3 +1,4 @@
+import base64
 import os
 import random
 from enum import Enum
@@ -7,7 +8,9 @@ from typing import Tuple, List
 import numpy as np
 import polytope as pc
 import matplotlib.pyplot as plt
+
 from rich.progress import track
+from vertexai.generative_models import Image
 
 
 class Env(Enum):
@@ -17,13 +20,27 @@ class Env(Enum):
     CURVE = 'curve'
     DIAGONAL_WALL = 'diagonal_wall'
     EASY = 'easy'
-    MAZE_2D = 'maze_2d'
-    SCOTS_HSCC16 = 'scots_hscc16'
+    MAZE_2D = 'maze'
+    SCOTS_HSCC16 = 'scots'
     SPIRAL = 'spiral'
     WALL = 'wall'
 
     def __str__(self):
         return self.value
+
+    def get_image_path(self):
+        name = self.value.split('_')
+        name = ' '.join([word.capitalize() for word in name])
+        path = os.path.join(os.path.dirname(__file__), 'envs/plots/manual', f'{name}.png')
+        return path
+
+    def get_image_base64(self):
+        path = self.get_image_path()
+        with open(path, mode='rb') as file:
+            img = file.read()
+        return base64.b64encode(img).decode('utf-8')
+
+
 
     @staticmethod
     def generate_env(num_obstacles: int):
@@ -214,11 +231,13 @@ def generate_python_envs():
 if __name__ == "__main__":
     from envs.plot_env import plot_env
 
-    for i in track(range(11)):
-        for j in range(40):
-            Theta, G, O, workspace = import_random_env(i, j)
-            print(f'Successfully imported random environment {i} with {len(O)} obstacles and index {j}')
+    # for i in track(range(11)):
+    #     for j in range(40):
+    #         Theta, G, O, workspace = import_random_env(i, j)
+    #         print(f'Successfully imported random environment {i} with {len(O)} obstacles and index {j}')
 
+    for env in Env:
+        print(env.get_image_base64())
     # generate_python_envs()
     # for env in Env:
     #     Theta, G, O, workspace = import_environment(env)

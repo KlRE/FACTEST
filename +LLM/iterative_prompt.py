@@ -44,7 +44,7 @@ def path_from_file(file_path):
 
 def iterative_prompt(env: Tuple[pc.Polytope, pc.Polytope, List[pc.Polytope], pc.Polytope], env_name: str,
                      prompting_strat: PromptStrategy, model=Model.LLAMA3_8b, num_iterations=20,
-                     use_history=False, continue_path="", directory="./logs"):
+                     use_history=False, init_img_path: str = None, continue_path="", directory="./logs"):
     """
     Iteratively prompts the user for feedback on a path until a successful path is found or the maximum number of iterations is reached.
     If continue_path is provided, the function will continue from the path in the file.
@@ -52,12 +52,14 @@ def iterative_prompt(env: Tuple[pc.Polytope, pc.Polytope, List[pc.Polytope], pc.
     :param prompting_strat: The prompting strategy to use
     :param num_iterations: The maximum number of iterations to run
     :param use_history: Use history for prompting
+    :param init_img_path: If provided, the initial image to use for prompting and every subsequent image
     :param continue_path: The path to continue from if any or empty string
     :param model: The model to use for prompting
     :param directory: The directory to save logs
     """
     Theta, G, O, workspace = env
     new_Theta, new_G, new_O, new_workspace = convert_env_polytope_to_arrays(Theta, G, O, workspace)
+    use_img = init_img_path is not None
 
     if prompting_strat == PromptStrategy.FULL_PATH:
         Prompter = FullPathPrompt(model, new_Theta, new_G, new_O, new_workspace, use_history)
@@ -90,7 +92,7 @@ def iterative_prompt(env: Tuple[pc.Polytope, pc.Polytope, List[pc.Polytope], pc.
         )
 
         logging.info("Asking initial prompt")
-        successful_prompt, path = Prompter.prompt_init()
+        successful_prompt, path = Prompter.prompt_init(img_path=init_img_path)
 
         if not successful_prompt:
             logging.warning("Failed to get initial prompt")
@@ -123,7 +125,10 @@ def iterative_prompt(env: Tuple[pc.Polytope, pc.Polytope, List[pc.Polytope], pc.
 
         if i != num_iterations:  # Don't prompt on the last iteration, because feedback will not be provided
             logging.info(f"Feedback Iteration {i + 1}")
-            successful_prompt, path = Prompter.prompt_feedback(path, intersections, starts_in_init, ends_in_goal)
+            img_path = None
+            if use_img:
+                img_path = log_directory + f"/plot_{i + 1}.png"
+            successful_prompt, path = Prompter.prompt_feedback(path, intersections, starts_in_init, ends_in_goal, img_path)
             if not successful_prompt:
                 logging.warning("Failed to get feedback prompt")
                 return False, i + 1, len(path)
@@ -136,10 +141,11 @@ if __name__ == "__main__":
     parser.add_argument('--env', type=Env, choices=list(Env), required=True, help='The environment to prompt for')
     parser.add_argument('--prompting_strat', type=PromptStrategy, choices=list(PromptStrategy),
                         default=PromptStrategy.FULL_PATH, help='Prompt strategy to use')
-    parser.add_argument('--model', type=Model, choices=list(Model), default=Model.LLAMA3_8b,
+    parser.add_argument('--model', type=Model, choices=list(Model), default=Model.LLAMA3_1_70b_Groq,
                         help='Model to use for prompting')
     parser.add_argument('--num_iterations', type=int, default=20, help='Number of iterations to run')
     parser.add_argument('--use_history', type=bool, help='Use history for prompting')
+    parser.add_argument('--use_imgs', action='store_true', help='Use images for prompting')
     parser.add_argument('--continue_path', type=str, default="",
                         help='The path to continue from if any or empty string')
     parser.add_argument('--directory', type=str, default="./logs", help='The directory to save logs')
@@ -147,7 +153,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     env = import_environment(args.env)
-
+    init_img_path = args.env.get_image_path() if args.use_imgs else None
     iterative_prompt(env=env, env_name=args.env.value, prompting_strat=args.prompting_strat, model=args.model,
-                     num_iterations=args.num_iterations, use_history=args.use_history, continue_path=args.continue_path,
+                     num_iterations=args.num_iterations, use_history=args.use_history, init_img_path=init_img_path, continue_path=args.continue_path,
                      directory=args.directory)

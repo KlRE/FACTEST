@@ -6,7 +6,7 @@ import polytope as pc
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from scipy.spatial import ConvexHull
 
-plt.rc('axes', titlesize=35)
+#plt.rc('axes', titlesize=35)
 
 
 def plot_env(title, workspace, G, Theta, O, save=False, plot3d=False, dir='./plots/', show=True):

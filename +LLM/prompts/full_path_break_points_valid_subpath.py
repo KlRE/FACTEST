@@ -108,18 +108,18 @@ class FullPathBreakPointsValidSubPathPrompt(PathPrompter):
     def get_task_description(self):
         return self.task_description
 
-    def get_init_prompt(self):
-        return super().get_init_prompt() + full_path_ex()
+    def get_init_prompt(self, use_img=False):
+        return super().get_init_prompt(use_img) + full_path_ex()
 
     def get_feedback_prompt(self, path: List[Tuple], intersections, starts_in_init: bool,
-                            ends_in_goal: bool):
+                            ends_in_goal: bool, use_img=False):
         return super().get_feedback_prompt(path=path, intersections=intersections, starts_in_init=starts_in_init,
-                                           ends_in_goal=ends_in_goal) + full_path_ex()
+                                           ends_in_goal=ends_in_goal, use_img=use_img) + full_path_ex()
 
     def get_task_data(self):
         bp_str = "Breakpoints:\n"
         for i, bp in enumerate(self.breakpoints):
-            bp_str += f"\t\tBreakpoint Set {i + 1}: {bp}\n"
+            bp_str += f"\t\tBreakpoint Set {i + 1}: {bp[1]}\n"
         return super().get_task_data() + f"{bp_str}"
 
     def init_breakpoints(self, Theta, G, O, workspace):

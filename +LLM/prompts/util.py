@@ -1,14 +1,12 @@
 import base64
-import json
 from time import strftime, gmtime
 
-import PIL.Image
 import polytope as pc
 import numpy as np
 import vertexai
 from matplotlib import pyplot as plt
 from scipy.spatial import ConvexHull
-from vertexai.generative_models import GenerativeModel
+from vertexai.generative_models import GenerativeModel, Image
 
 import os
 
@@ -21,6 +19,9 @@ from supabase import create_client, Client
 from supafunc.errors import FunctionsHttpError, FunctionsRelayError
 
 
+with open("/home/erik/FACTEST/+LLM/envs/plots/manual/Box.png", mode='rb') as file:
+         img = file.read()
+
 def get_example_prompt():
     return """"""
 
@@ -31,8 +32,7 @@ def test_gemini_supabase():
     # key: str = os.environ.get("SUPABASE_KEY")
     # supabase: Client = create_client(url, key)
     #
-    # with open("/home/erik/FACTEST/+LLM/envs/plots/2D Box Environment.png", mode='rb') as file:
-    #     img = file.read()
+    #
     #
     # response = supabase.functions.invoke(
     #     "prompt",
@@ -59,9 +59,16 @@ def test_gemini_supabase():
     vertexai.init(project="gentle-keyword-432706-b3", location="europe-west3")
 
     model = GenerativeModel("gemini-1.5-flash-001")
-
+    image = Image.load_from_file("/home/erik/FACTEST/+LLM/envs/plots/manual/Box.png")
     response = model.generate_content(
-        "What's a good name for a flower shop that specializes in selling bouquets of dried flowers?"
+       ["What do you see", image]
+    )
+    print(response.text)
+    vertexai.init(project="gentle-keyword-432706-b3", location="us-central1")
+
+    image = Image.load_from_file("/home/erik/FACTEST/+LLM/envs/plots/manual/Box.png")
+    response = model.generate_content(
+       ["What do you see", image]
     )
 
     print(response.text)
@@ -93,10 +100,20 @@ def test_chatgpt():
     completion = client.chat.completions.create(
         model="gpt-4o-2024-08-06",
         messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
             {
                 "role": "user",
-                "content": "Hello Chat."
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "What do you see"
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url":  f"data:image/jpeg;base64,{base64.b64encode(img).decode('utf-8')}"
+                        }
+                    }
+                ]
             }
         ]
     )
@@ -181,7 +198,7 @@ def plot_polytope(vertices):
 
 
 if __name__ == "__main__":
-    test_chatgpt()
+    #test_chatgpt()
     # test_claude()
     # Generate random quadrilateral
     # A, b, vertices = generate_random_2d_polygon()
@@ -196,5 +213,5 @@ if __name__ == "__main__":
     # print(pc.extreme(Theta))
     # print(vertices)
     # random_test()
-    # test_gemini_supabase()
+    test_gemini_supabase()
 # test_groq()
