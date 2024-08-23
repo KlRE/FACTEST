@@ -119,7 +119,7 @@ class FullPathBreakPointsValidSubPathPrompt(PathPrompter):
     def get_task_data(self):
         bp_str = "Breakpoints:\n"
         for i, bp in enumerate(self.breakpoints):
-            bp_str += f"\t\tBreakpoint Set {i + 1}: {bp[1]}\n"
+            bp_str += f"\t\tBreakpoint Set {i + 1}: {bp}\n"
         return super().get_task_data() + f"{bp_str}"
 
     def init_breakpoints(self, Theta, G, O, workspace):

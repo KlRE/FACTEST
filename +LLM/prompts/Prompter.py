@@ -144,7 +144,7 @@ class Prompter(ABC):
         """
         pass
 
-    def _prompt_model(self, prompt: str, retry, image_path = None):
+    def _prompt_model(self, prompt: str, retry, image_path=None):
         """
         Prompt the model depending on the model type
         """
@@ -186,7 +186,9 @@ class Prompter(ABC):
                                 },
                                 {
                                     "type": "image_url",
-                                    "image_url": f"data:image/png;base64,{img_b64}"
+                                    "image_url": {
+                                        "url": f"data:image/jpeg;base64,{img_b64}"
+                                    }
                                 }
 
                             ],
@@ -251,7 +253,8 @@ class Prompter(ABC):
             )
             return response.content[0].text
 
-    def prompt_model(self, prompt: str, image_path=None, max_attempts=30, log_message='Prompting model') -> Tuple[bool, Any]:
+    def prompt_model(self, prompt: str, image_path=None, max_attempts=30, log_message='Prompting model') -> Tuple[
+        bool, Any]:
         """
         Prompt the model with the given prompt and parse the response
         :param prompt: Prompt
@@ -370,7 +373,8 @@ class PathPrompter(Prompter, ABC):
         :param ends_in_goal: Ends in goal set
         :param path_img: image path
         """
-        feedback = self.get_feedback_prompt(path, intersections, starts_in_init, ends_in_goal, use_img=path_img is not None)
+        feedback = self.get_feedback_prompt(path, intersections, starts_in_init, ends_in_goal,
+                                            use_img=path_img is not None)
         return self.prompt_model(feedback, path_img)
 
     def get_feedback_prompt(self, path: List[Tuple], intersections, starts_in_init: bool,
