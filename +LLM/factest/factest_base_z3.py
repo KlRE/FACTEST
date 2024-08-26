@@ -122,6 +122,7 @@ class FACTEST_Z3():
         return x_ref
 
     def run(self, force_partition=False):
+        set_option(precision=2)
         if not force_partition:
             init_poly = self.initial_parts[0]['poly']
             depth = self.initial_parts[0]['depth']
@@ -146,11 +147,7 @@ class FACTEST_Z3():
                     new_dict[i] = self.initial_parts[key]
                     i += 1
                 else:
-                    new_polys = partition_polytope(init_poly, self.dims)
-                    for poly in new_polys:
-                        xref = self.get_xref(poly)
-                        new_dict[i] = {'poly': poly, 'depth': depth + 1, 'xref': xref}
-                        i += 1
+                    raise Exception('Partitioning not implemented yet!')
 
             self.initial_parts = new_dict
 

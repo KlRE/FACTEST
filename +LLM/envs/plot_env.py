@@ -1,15 +1,16 @@
 import matplotlib.pyplot as plt
-
+import os
 from typing import Union, List
 
 import polytope as pc
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from scipy.spatial import ConvexHull
 
-#plt.rc('axes', titlesize=35)
+
+# plt.rc('axes', titlesize=35)
 
 
-def plot_env(title, workspace, G, Theta, O, save=False, plot3d=False, dir='./plots/', show=True):
+def plot_env(title, workspace, G, Theta, O, save=False, plot3d=False, dir='./plots/', show=True, path=None):
     """
     Plot the environment with the workspace, goal region, initial region, and obstacles
     """
@@ -37,6 +38,11 @@ def plot_env(title, workspace, G, Theta, O, save=False, plot3d=False, dir='./plo
         plotPolytope(obstacle, ax, 'red')
         i += 1
 
+    if path:
+        xref_1 = [xval[0] for xval in path]
+        xref_2 = [xval[1] for xval in path]
+        ax.plot(xref_1, xref_2, 'o-', linewidth=1)
+
     ax.autoscale_view()
     # plt.axis('equal')
     plt.title(title)
@@ -50,7 +56,6 @@ def plot_env(title, workspace, G, Theta, O, save=False, plot3d=False, dir='./plo
         fig.savefig(path)
 
     return fig, ax
-
 
 
 def plotPoly(poly: Union[pc.Polytope, List[pc.Polytope]], ax=None, color='red'):  # Takes in tulip polytope and plots it
@@ -82,7 +87,6 @@ def plotPoly_3d(poly, ax, color='r'):
 if __name__ == "__main__":
     # plot all the environments in this directory
     # import all the environments
-    import os
     import importlib.util
 
     save = True

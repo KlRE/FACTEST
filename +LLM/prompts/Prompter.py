@@ -253,7 +253,8 @@ class Prompter(ABC):
             )
             return response.content[0].text
 
-    def prompt_model(self, prompt: str, image_path=None, max_attempts=30, log_message='Prompting model') -> Tuple[
+    def prompt_model(self, prompt: str, image_path=None, max_attempts=30, log_message='Prompting model',
+                     parse_response=True) -> Tuple[
         bool, Any]:
         """
         Prompt the model with the given prompt and parse the response
@@ -271,10 +272,14 @@ class Prompter(ABC):
             try:
                 response = self._prompt_model(prompt, retry, image_path=image_path)
                 logging.info(response)
-                parsed_response = self.parse_response(response)
-                logging.info(f'Parsed response: {parsed_response}')
+                if parse_response:
+                    parsed_response = self.parse_response(response)
+                    logging.info(f'Parsed response: {parsed_response}')
+                    successful = True
+                    return successful, parsed_response
+
                 successful = True
-                return successful, parsed_response
+                return successful, response
             except groq.RateLimitError as e:
                 logging.warning(f"Rate limit error: {e}.\n Trying again in 3 minutes")
                 time.sleep(180)

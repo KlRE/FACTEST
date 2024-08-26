@@ -1,4 +1,5 @@
 import base64
+import math
 import os
 import random
 from enum import Enum
@@ -40,8 +41,6 @@ class Env(Enum):
             img = file.read()
         return base64.b64encode(img).decode('utf-8')
 
-
-
     @staticmethod
     def generate_env(num_obstacles: int):
         """
@@ -64,15 +63,28 @@ class Env(Enum):
         # Define the obstacles
         O = []
 
-        lower_bound = np.array([0, 0])
-        upper_bound = np.array([20, 20])
+        lower_bound = np.array([-2, -2])
+        upper_bound = np.array([22, 22])
+        workspace_size = upper_bound[0] - lower_bound[0]
 
-        grid_size = 15
-        overlap_size = 10
+        overlap_percent = 0.2  # 20% overlap
 
-        num_rows = int((upper_bound[1] - lower_bound[1]) / (grid_size - overlap_size))
-        num_cols = int((upper_bound[0] - lower_bound[0]) / (grid_size - overlap_size))
+        # Calculate the number of grid cells in each dimension
+        num_cells_per_dim = math.ceil(math.sqrt(num_obstacles))
 
+        # Calculate base_grid_size
+        base_grid_size = workspace_size / (num_cells_per_dim - overlap_percent * (num_cells_per_dim - 1))
+
+        # Round base_grid_size to one decimal place
+        grid_size = np.round(base_grid_size, 1)
+
+        # Calculate overlap_size
+        overlap_size = base_grid_size * overlap_percent
+
+        num_rows = num_cells_per_dim
+        num_cols = num_cells_per_dim
+
+        print(num_rows, num_cols)
         grid_cells = []
         for x in range(num_cols):
             for y in range(num_rows):
@@ -82,6 +94,7 @@ class Env(Enum):
                 y_max = y_min + grid_size
                 grid_cells.append((x_min, y_min, x_max, y_max))
         # print(grid_cells)
+        print(len(grid_cells))
         np.random.shuffle(grid_cells)
         grid_cells = grid_cells[:num_obstacles]
 
@@ -184,6 +197,7 @@ def import_random_env(num_obstacles: int, index: int) -> Tuple[
     except AttributeError as e:
         raise ImportError(f'Failed to import random environment {num_obstacles} with index {index}: {e}')
 
+
 def get_random_env_img_path(num_obstacles: int, index: int):
     path = f'envs/plots/RandomEnv_{num_obstacles:02d}Obs_{index}.png'
     return path
@@ -247,8 +261,6 @@ if __name__ == "__main__":
 
     # for env in Env:
     #     print(env.get_image_base64())
-
-
 
     # generate_python_envs()
     # for env in Env:
