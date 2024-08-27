@@ -34,6 +34,7 @@ class Model(Enum):
     GEMINI_1_5_FLASH_VERTEX = 'gemini-1.5-flash-001'
     GPT_4o = 'gpt-4o-2024-08-06'
     SONNET = 'claude-3-5-sonnet-20240620'
+    GPT_4o_fine_tuned = 'ft:gpt-4o-2024-08-06:prof-mitra-rag-team:factest-pathonly-v1:A0ndfZkd'
 
     def __str__(self):
         return self.value
@@ -96,7 +97,7 @@ class Prompter(ABC):
             self.client = GenerativeModel(model.value)
             self.curr_loc = 1
 
-        elif model == Model.GPT_4o:
+        elif model == Model.GPT_4o or model == Model.GPT_4o_fine_tuned:
             load_dotenv()
             self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
@@ -157,20 +158,35 @@ class Prompter(ABC):
             return ollama.generate(model=self.model.value, prompt=prompt)['response']
 
         elif (self.model == Model.LLAMA3_1_8b_Groq or self.model == Model.LLAMA3_1_70b_Groq
-              or self.model == Model.LLAMA3_70b_Groq or self.model == Model.GPT_4o):
+              or self.model == Model.LLAMA3_70b_Groq or self.model == Model.GPT_4o or self.model == Model.GPT_4o_fine_tuned):
 
             if retry:
                 time.sleep(4)
             if not (image_path and self.model == Model.GPT_4o):
-                chat_completion = self.client.chat.completions.create(
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": prompt,
-                        }
-                    ],
-                    model=self.model.value,
-                )
+                if self.model == Model.GPT_4o_fine_tuned:
+                    chat_completion = self.client.chat.completions.create(
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": "You are a highly efficient and capable planner designed to solve 2D mazes. Given the positions of obstacles, the start point, and the end goal, you are tasked with determining the optimal path from the start to the goal while avoiding obstacles. You must evaluate the maze layout, identify possible routes, and select the most efficient path, considering factors such as distance, direction, and potential dead ends. Your objective is to find a clear and direct path.",
+                            },
+                            {
+                                "role": "user",
+                                "content": prompt,
+                            }
+                        ],
+                        model=self.model.value,
+                    )
+                else:
+                    chat_completion = self.client.chat.completions.create(
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": prompt,
+                            }
+                        ],
+                        model=self.model.value,
+                    )
             else:
                 with open("/home/erik/FACTEST/+LLM/envs/plots/manual/Box.png", mode='rb') as file:
                     img = file.read()

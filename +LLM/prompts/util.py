@@ -18,9 +18,9 @@ from rich.table import Column
 from supabase import create_client, Client
 from supafunc.errors import FunctionsHttpError, FunctionsRelayError
 
-
 with open("/home/erik/FACTEST/+LLM/envs/plots/manual/Box.png", mode='rb') as file:
-         img = file.read()
+    img = file.read()
+
 
 def get_example_prompt():
     return """"""
@@ -61,14 +61,14 @@ def test_gemini_supabase():
     model = GenerativeModel("gemini-1.5-flash-001")
     image = Image.load_from_file("/home/erik/FACTEST/+LLM/envs/plots/manual/Box.png")
     response = model.generate_content(
-       ["What do you see", image]
+        ["What do you see", image]
     )
     print(response.text)
     vertexai.init(project="gentle-keyword-432706-b3", location="us-central1")
 
     image = Image.load_from_file("/home/erik/FACTEST/+LLM/envs/plots/manual/Box.png")
     response = model.generate_content(
-       ["What do you see", image]
+        ["What do you see", image]
     )
 
     print(response.text)
@@ -110,7 +110,7 @@ def test_chatgpt():
                     {
                         "type": "image_url",
                         "image_url": {
-                            "url":  f"data:image/jpeg;base64,{base64.b64encode(img).decode('utf-8')}"
+                            "url": f"data:image/jpeg;base64,{base64.b64encode(img).decode('utf-8')}"
                         }
                     }
                 ]
@@ -140,6 +140,16 @@ def test_claude():
         model="claude-3-haiku-20240307",
     )
     print(message.content[0].text)
+
+
+def test_gemini():
+    import google.generativeai as genai
+    load_dotenv()
+    genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    response = model.generate_content("Write a story about an AI and magic")
+    print(response.text)
 
 
 def random_test():
@@ -198,20 +208,9 @@ def plot_polytope(vertices):
 
 
 if __name__ == "__main__":
-    #test_chatgpt()
+    # test_chatgpt()
     # test_claude()
-    # Generate random quadrilateral
-    # A, b, vertices = generate_random_2d_polygon()
-    #
-    # print("Matrix A (coefficients of inequalities):")
-    # print(A)
-    # print("Vector b (constants of inequalities):")
-    # print(b)
-    # print("Vertices of the polygon:")
-    # Theta = pc.Polytope(A, b)
-    # print(Theta)
-    # print(pc.extreme(Theta))
-    # print(vertices)
+    test_gemini()
     # random_test()
-    test_gemini_supabase()
+    # test_gemini_supabase()
 # test_groq()

@@ -84,7 +84,7 @@ class Env(Enum):
         num_rows = num_cells_per_dim
         num_cols = num_cells_per_dim
 
-        print(num_rows, num_cols)
+        # print(num_rows, num_cols)
         grid_cells = []
         for x in range(num_cols):
             for y in range(num_rows):
@@ -94,7 +94,7 @@ class Env(Enum):
                 y_max = y_min + grid_size
                 grid_cells.append((x_min, y_min, x_max, y_max))
         # print(grid_cells)
-        print(len(grid_cells))
+        # print(len(grid_cells))
         np.random.shuffle(grid_cells)
         grid_cells = grid_cells[:num_obstacles]
 
