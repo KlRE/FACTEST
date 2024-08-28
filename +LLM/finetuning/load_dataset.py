@@ -19,8 +19,8 @@ def make_chatgpt_ds(file, save_path=None):
     save_path = save_path if save_path else file.replace(".json", "_chatgpt.jsonl")
     # validation set
 
-    num_ds = 200
-    num_val = 100
+    num_ds = 400
+    num_val = 0
 
     with open(save_path, "w") as f:
         for conv in ds[:num_ds]:
@@ -47,5 +47,20 @@ def make_chatgpt_ds(file, save_path=None):
             f.write(obj + "\n")
 
 
+def custom_ds():
+    ds_full_path = "datasets/synthetic_ds2.json"
+    ds_feedback_path = "../tests/random_env/conversation_pairs_2024-08-28.json"
+    ds_feedback = read_ds_file(ds_feedback_path)
+    ds_full = read_ds_file(ds_full_path)
+    ds_feedback.sort(key=lambda x: -len(x["response"]))
+    ds_feedback = list(map(lambda x: {"input": x["input"], "output": x["response"]}, ds_feedback))
+    # view_len = map(len, [x["response"] for x in ds_feedback])
+    # print(list(view_len))
+    interactions = {"conversations": ds_full[:200] + ds_feedback[:200]}
+    ds_file_path = "datasets/mixed_ds_400.json"
+    json.dump(interactions, open(ds_file_path, 'w'), indent=4)
+
+
 if __name__ == '__main__':
-    make_chatgpt_ds("synthetic_ds_pathonly.json")
+    # custom_ds()
+    make_chatgpt_ds("datasets/mixed_ds_400.json")

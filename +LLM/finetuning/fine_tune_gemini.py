@@ -20,11 +20,11 @@ def fine_tune_gemini(train_data_path):
 
     operation = genai.create_tuned_model(
         # You can use a tuned model here too. Set `source_model="tunedModels/..."`
-        id="factest-pathonly-v1",
-        display_name="factest-pathonly-v1",
+        id="factest-reasoning-v1",
+        display_name="factest-reasoning-v1-",
         source_model=base_model,
-        epoch_count=5,
-        batch_size=4,
+        epoch_count=1,
+        batch_size=3,
         learning_rate=0.001,
         training_data=training_data,
     )
@@ -44,4 +44,4 @@ def fine_tune_gemini(train_data_path):
 
 
 if __name__ == '__main__':
-    fine_tune_gemini("synthetic_ds2_pathonly.json")
+    fine_tune_gemini("datasets/mixed_ds_400.json")

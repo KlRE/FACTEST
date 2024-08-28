@@ -34,8 +34,12 @@ class Model(Enum):
     GEMINI_1_5_FLASH_VERTEX = 'gemini-1.5-flash-001'
     GPT_4o = 'gpt-4o-2024-08-06'
     SONNET = 'claude-3-5-sonnet-20240620'
-    GPT_4o_fine_tuned = 'ft:gpt-4o-2024-08-06:prof-mitra-rag-team:factest-pathonly-v1:A0ndfZkd'
+    GPT_4o_fine_tuned_pathonly = 'ft:gpt-4o-2024-08-06:prof-mitra-rag-team:factest-pathonly-v1:A0ndfZkd'
+    GPT_4o_fine_tuned_reasoning = 'ft:gpt-4o-2024-08-06:prof-mitra-rag-team:factest-reasoning-v1:A1BmEpxU'
+
+    GEMINI_1_5_FLASH_FT_GPT = 'tunedModels/factest-pathonly-v1-gpt'
     GEMINI_1_5_FLASH_FT = 'tunedModels/factest-pathonly-v1'
+    GEMINI_1_5_FLASH_FT_REASONING = 'tunedModels/factest-reasoning-v1'
 
     def __str__(self):
         return self.value
@@ -98,7 +102,7 @@ class Prompter(ABC):
             self.client = GenerativeModel(model.value)
             self.curr_loc = 1
 
-        elif model == Model.GPT_4o or model == Model.GPT_4o_fine_tuned:
+        elif model == Model.GPT_4o or model == Model.GPT_4o_fine_tuned_pathonly or model == Model.GPT_4o_fine_tuned_reasoning:
             load_dotenv()
             self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
@@ -107,6 +111,10 @@ class Prompter(ABC):
             self.client = Anthropic(
                 api_key=os.environ.get("ANTHROPIC_API_KEY"),
             )
+        elif model == Model.GEMINI_1_5_FLASH_FT_GPT or model == Model.GEMINI_1_5_FLASH_FT or model == Model.GEMINI_1_5_FLASH_FT_REASONING:
+            import google.generativeai as genai
+            load_dotenv()
+            self.client = genai.GenerativeModel(model.value)
 
         self.Theta = Theta
         self.G = G
@@ -159,12 +167,13 @@ class Prompter(ABC):
             return ollama.generate(model=self.model.value, prompt=prompt)['response']
 
         elif (self.model == Model.LLAMA3_1_8b_Groq or self.model == Model.LLAMA3_1_70b_Groq
-              or self.model == Model.LLAMA3_70b_Groq or self.model == Model.GPT_4o or self.model == Model.GPT_4o_fine_tuned):
+              or self.model == Model.LLAMA3_70b_Groq or self.model == Model.GPT_4o
+              or self.model == Model.GPT_4o_fine_tuned_pathonly or self.model == Model.GPT_4o_fine_tuned_reasoning):
 
             if retry:
                 time.sleep(4)
             if not (image_path and self.model == Model.GPT_4o):
-                if self.model == Model.GPT_4o_fine_tuned:
+                if self.model == Model.GPT_4o_fine_tuned_pathonly:
                     time.sleep(2)
                     chat_completion = self.client.chat.completions.create(
                         messages=[
@@ -270,6 +279,11 @@ class Prompter(ABC):
                 model="claude-3-haiku-20240307",
             )
             return response.content[0].text
+
+        elif self.model == Model.GEMINI_1_5_FLASH_FT_GPT or self.model == Model.GEMINI_1_5_FLASH_FT or self.model == Model.GEMINI_1_5_FLASH_FT_REASONING:
+            time.sleep(4)
+            response = self.client.generate_content(prompt)
+            return response.text
 
     def prompt_model(self, prompt: str, image_path=None, max_attempts=30, log_message='Prompting model',
                      parse_response=True) -> Tuple[
@@ -441,8 +455,17 @@ class PathPrompter(Prompter, ABC):
         :param response: Response
         :return: Path array
         """
-        if self.model == Model.GPT_4o_fine_tuned:
+        if self.model == Model.GPT_4o_fine_tuned_pathonly or self.model == Model.GEMINI_1_5_FLASH_FT_REASONING or self.model == Model.GPT_4o_fine_tuned_reasoning:
             path_section = re.search(r'new_path\s*=\s*\[(.*)]', response, re.DOTALL).group(1)
+            print(path_section)
+            coordinate_pattern = re.compile(r'[(\[][+-]?(?:\d*\.)?\d+, [+-]?(?:\d*\.)?\d+[])]')
+            coordinates = coordinate_pattern.findall(path_section)
+            print(coordinates)
+            # Convert the found coordinate pairs to a list of tuples
+            path = [tuple(map(float, coord.strip('()[]').split(', '))) for coord in coordinates]
+
+        elif self.model == Model.GEMINI_1_5_FLASH_FT_GPT or self.model == Model.GEMINI_1_5_FLASH_FT:
+            path_section = re.search(r'\[(.*)]', response, re.DOTALL).group(1)
             print(path_section)
             coordinate_pattern = re.compile(r'[(\[][+-]?(?:\d*\.)?\d+, [+-]?(?:\d*\.)?\d+[])]')
             coordinates = coordinate_pattern.findall(path_section)

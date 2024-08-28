@@ -41,7 +41,7 @@ def generate_synth_ds(samples=10, model: Model = Model.GEMINI_1_5_PRO_VERTEX, fi
     """
     np.random.seed(42)
     ds_file_path = f"{file_dir}/synthetic_ds2{'_pathonly' if not prompt_model else ''}.json"
-    ds_file_backup_path = f"{file_dir}/synthetic_ds2_backup{'_pathonly' if not prompt_model else ''}.txt"
+    ds_file_backup_path = f"{file_dir}/synthetic_ds2{'_pathonly' if not prompt_model else ''}.txt"
     logging.basicConfig(
         level=logging.INFO,
         format='[%(asctime)s] %(message)s',
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     #         generate_prob_w_sol(i)
     #         time.sleep(1)
 
-    generate_synth_ds(1000)
+    generate_synth_ds(300, prompt_model=True)
     # ds = read_ds_file("synthetic_ds.txt")
     # print(ds)
     # for obj in ds["conversations"]:

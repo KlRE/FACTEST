@@ -145,9 +145,9 @@ def test_claude():
 def test_gemini():
     import google.generativeai as genai
     load_dotenv()
-    genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+    # genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('tunedModels/factest-pathonly-v1-gpt')
     response = model.generate_content("Write a story about an AI and magic")
     print(response.text)
 
@@ -221,7 +221,8 @@ def test_reges():
 
 
 if __name__ == "__main__":
-    test_reges()
+    test_gemini()
+    # ätest_reges()
     # test_chatgpt()
     # test_claude()
     # test_gemini()

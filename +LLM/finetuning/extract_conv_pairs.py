@@ -104,7 +104,7 @@ def extract_all_successful_pairs(root_directory):
 
 
 if __name__ == '__main__':
-    root_directory = '../tests'
+    root_directory = '../tests/random_env'
     extract_all_successful_pairs(root_directory)
 
     # # Example usage:
