@@ -207,10 +207,24 @@ def plot_polytope(vertices):
     plt.show()
 
 
+def test_reges():
+    import re
+    response = "new_path = [[1.0, 1.0], [13.31, 16.25], [19.0, 19.0]]"
+    path_section = re.search(r'new_path\s*=\s*\[(.*)]', response, re.DOTALL).group(1)
+    print(path_section)
+    coordinate_pattern = re.compile(r'[(\[][+-]?(?:\d*\.)?\d+, [+-]?(?:\d*\.)?\d+[])]')
+    coordinates = coordinate_pattern.findall(path_section)
+    print(coordinates)
+    # Convert the found coordinate pairs to a list of tuples
+    path = [tuple(map(float, coord.strip('()[]').split(', '))) for coord in coordinates]
+    print(path)
+
+
 if __name__ == "__main__":
+    test_reges()
     # test_chatgpt()
     # test_claude()
-    test_gemini()
+    # test_gemini()
     # random_test()
     # test_gemini_supabase()
 # test_groq()

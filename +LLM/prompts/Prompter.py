@@ -35,6 +35,7 @@ class Model(Enum):
     GPT_4o = 'gpt-4o-2024-08-06'
     SONNET = 'claude-3-5-sonnet-20240620'
     GPT_4o_fine_tuned = 'ft:gpt-4o-2024-08-06:prof-mitra-rag-team:factest-pathonly-v1:A0ndfZkd'
+    GEMINI_1_5_FLASH_FT = 'tunedModels/factest-pathonly-v1'
 
     def __str__(self):
         return self.value
@@ -164,6 +165,7 @@ class Prompter(ABC):
                 time.sleep(4)
             if not (image_path and self.model == Model.GPT_4o):
                 if self.model == Model.GPT_4o_fine_tuned:
+                    time.sleep(2)
                     chat_completion = self.client.chat.completions.create(
                         messages=[
                             {
@@ -439,14 +441,24 @@ class PathPrompter(Prompter, ABC):
         :param response: Response
         :return: Path array
         """
-        # Extract the portion of the text containing the path array
-        path_section = re.search(r'new_path\s*=\s*(\[.*?])', response, re.DOTALL).group(1)
-        # Extract all coordinate pairs from the path array
-        coordinate_pattern = re.compile(r'\([+-]?(?:\d*\.)?\d+, [+-]?(?:\d*\.)?\d+\)')
-        coordinates = coordinate_pattern.findall(path_section)
+        if self.model == Model.GPT_4o_fine_tuned:
+            path_section = re.search(r'new_path\s*=\s*\[(.*)]', response, re.DOTALL).group(1)
+            print(path_section)
+            coordinate_pattern = re.compile(r'[(\[][+-]?(?:\d*\.)?\d+, [+-]?(?:\d*\.)?\d+[])]')
+            coordinates = coordinate_pattern.findall(path_section)
+            print(coordinates)
+            # Convert the found coordinate pairs to a list of tuples
+            path = [tuple(map(float, coord.strip('()[]').split(', '))) for coord in coordinates]
 
-        # Convert the found coordinate pairs to a list of tuples
-        path = [tuple(map(float, coord.strip('()').split(', '))) for coord in coordinates]
+        else:
+            # Extract the portion of the text containing the path array
+            path_section = re.search(r'new_path\s*=\s*(\[.*?])', response, re.DOTALL).group(1)
+            # Extract all coordinate pairs from the path array
+            coordinate_pattern = re.compile(r'[\(\[][+-]?(?:\d*\.)?\d+, [+-]?(?:\d*\.)?\d+[])]')
+            coordinates = coordinate_pattern.findall(path_section)
+
+            # Convert the found coordinate pairs to a list of tuples
+            path = [tuple(map(float, coord.strip('()').split(', '))) for coord in coordinates]
         if len(path) == 0:
             raise ValueError("No path found in response")
         return path
