@@ -4,7 +4,6 @@ from matplotlib import pyplot as plt
 from z3 import *
 
 from envs.plot_env import plot_env
-from import_env import Env
 
 
 def find_breakpoints(num_sections, Theta, G, O, workspace):
@@ -109,13 +108,15 @@ def find_breakpoints(num_sections, Theta, G, O, workspace):
 
 if __name__ == "__main__":
     from convert_polytope_to_arrays import convert_env_polytope_to_arrays
+    from import_env import Env, import_environment
 
     # from envs.maze_2d import Theta, G, O, workspace
 
     Theta, G, O, workspace = Env.generate_env(3)
-    fig, ax = plot_env("Random Environment", workspace, G, Theta, O)
+    Theta, G, O, workspace = import_environment(Env.CURVE)
+    fig, ax = plot_env("Curve FSH", workspace, G, Theta, O)
 
-    breakpoints = find_breakpoints(4, Theta, G, O, workspace)
+    breakpoints = find_breakpoints(2, Theta, G, O, workspace)
 
     # plot breakpoints
     for bp in breakpoints:
