@@ -127,6 +127,7 @@ def test_claude():
     client = Anthropic(
         # This is the default and can be omitted
         api_key=os.environ.get("ANTHROPIC_API_KEY"),
+
     )
 
     message = client.messages.create(
@@ -134,7 +135,19 @@ def test_claude():
         messages=[
             {
                 "role": "user",
-                "content": "Hello, Claude",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": "image/png",
+                            "data": base64.b64encode(img).decode('utf-8'),
+                        },
+                    },
+                    {
+                        "type": "text",
+                        "text": "Describe this image."
+                    }]
             }
         ],
         model="claude-3-haiku-20240307",
@@ -221,10 +234,10 @@ def test_reges():
 
 
 if __name__ == "__main__":
-    test_gemini()
+    # test_gemini()
     # ätest_reges()
     # test_chatgpt()
-    # test_claude()
+    test_claude()
     # test_gemini()
     # random_test()
     # test_gemini_supabase()

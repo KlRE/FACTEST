@@ -41,7 +41,8 @@ def log_success_rate(successfuls, num_iterations_needed, path_lens, log_results_
 
 
 def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, description="",
-                   model=Model.MISTRAL_NEMO_12b, use_history=False, use_imgs=False, specific_envs=[], evaluations_per_env=1,
+                   model=Model.MISTRAL_NEMO_12b, use_history=False, use_imgs=False, specific_envs=[],
+                   evaluations_per_env=1,
                    use_random_env=False, random_env_obstacles=[3], num_random_envs=10):
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     if use_random_env:
@@ -56,6 +57,7 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
     log_results_file.write(f"Model: {model}\n")
     log_results_file.write(f"Prompting strategy: {prompting_strat}\n")
     log_results_file.write(f"Use history: {use_history}\n")
+    log_results_file.write(f"Use images: {use_imgs}\n")
     log_results_file.write("-----------------------------\n")
 
     with Progress(*Progress.get_default_columns(), TimeElapsedColumn(), refresh_per_second=1,
@@ -76,7 +78,8 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
                     init_img_path = get_random_env_img_path(num_obs, i) if use_imgs else None
                     successful, num_iterations_ran, path_len = iterative_prompt(env_polytopes, f"Env {i}",
                                                                                 prompting_strat,
-                                                                                model, num_iterations, use_history, init_img_path,
+                                                                                model, num_iterations, use_history,
+                                                                                init_img_path,
                                                                                 directory=f"{path}/{obs}_Obs")
                     log_results_file.write(
                         f"Random Env {i}: {successful} after {num_iterations_ran} iterations with path length {path_len}\n")
@@ -111,7 +114,8 @@ def run_experiment(prompting_strat=PromptStrategy.FULL_PATH, num_iterations=30, 
                     init_img_path = env.get_image_path() if use_imgs else None
                     successful, num_iterations_ran, path_len = iterative_prompt(env_polytopes, env.value,
                                                                                 prompting_strat, model,
-                                                                                num_iterations, use_history, init_img_path,
+                                                                                num_iterations, use_history,
+                                                                                init_img_path,
                                                                                 directory=path)
                     log_results_file.write(
                         f"{env.value} {i + 1}: {successful} after {num_iterations_ran} iterations with path length {path_len}\n")

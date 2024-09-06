@@ -199,9 +199,7 @@ class Prompter(ABC):
                         model=self.model.value,
                     )
             else:
-                with open("/home/erik/FACTEST/+LLM/envs/plots/manual/Box.png", mode='rb') as file:
-                    img = file.read()
-                img_b64 = base64.b64encode(img).decode('utf-8')
+                img_b64 = base64.b64encode(open(image_path, mode='rb').read()).decode('utf-8')
                 chat_completion = self.client.chat.completions.create(
                     messages=[
                         {
@@ -214,7 +212,7 @@ class Prompter(ABC):
                                 {
                                     "type": "image_url",
                                     "image_url": {
-                                        "url": f"data:image/jpeg;base64,{img_b64}"
+                                        "url": f"data:image/png;base64,{img_b64}"
                                     }
                                 }
 
@@ -268,17 +266,45 @@ class Prompter(ABC):
             return response.text
 
         elif self.model == Model.SONNET:
-            response = self.client.messages.create(
-                max_tokens=1024,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": prompt,
-                    }
-                ],
-                model="claude-3-haiku-20240307",
-            )
-            return response.content[0].text
+            if retry:
+                time.sleep(4)
+
+            if image_path:
+                response = self.client.messages.create(
+                    max_tokens=1024,
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "image",
+                                    "source": {
+                                        "type": "base64",
+                                        "media_type": "image/png",
+                                        "data": base64.b64encode(open(image_path, mode='rb').read()).decode('utf-8'),
+                                    },
+                                },
+                                {
+                                    "type": "text",
+                                    "text": prompt
+                                }]
+                        }
+                    ],
+                    model="claude-3-haiku-20240307",
+                )
+                return response.content[0].text
+            else:
+                response = self.client.messages.create(
+                    max_tokens=1024,
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": prompt,
+                        }
+                    ],
+                    model="claude-3-haiku-20240307",
+                )
+                return response.content[0].text
 
         elif self.model == Model.GEMINI_1_5_FLASH_FT_GPT or self.model == Model.GEMINI_1_5_FLASH_FT or self.model == Model.GEMINI_1_5_FLASH_FT_REASONING:
             time.sleep(4)
