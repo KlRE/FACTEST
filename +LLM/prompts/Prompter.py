@@ -12,7 +12,7 @@ from typing import List, Tuple, Any
 import groq
 import ollama
 import vertexai
-from anthropic import Anthropic
+from anthropic import Anthropic, AnthropicVertex
 from dotenv import load_dotenv
 from groq import Groq
 from openai import OpenAI
@@ -34,6 +34,7 @@ class Model(Enum):
     GEMINI_1_5_FLASH_VERTEX = 'gemini-1.5-flash-001'
     GPT_4o = 'gpt-4o-2024-08-06'
     SONNET = 'claude-3-5-sonnet-20240620'
+    SONNET_VERTEX = 'claude-3-5-sonnet@20240620'
     GPT_4o_fine_tuned_pathonly = 'ft:gpt-4o-2024-08-06:prof-mitra-rag-team:factest-pathonly-v1:A0ndfZkd'
     GPT_4o_fine_tuned_reasoning = 'ft:gpt-4o-2024-08-06:prof-mitra-rag-team:factest-reasoning-v1:A1BmEpxU'
 
@@ -101,6 +102,9 @@ class Prompter(ABC):
             vertexai.init(project="gentle-keyword-432706-b3", location="us-central1")
             self.client = GenerativeModel(model.value)
             self.curr_loc = 1
+
+        elif model == Model.SONNET_VERTEX:
+            self.client = AnthropicVertex(region="europe-west1", project_id="gentle-keyword-432706-b3")
 
         elif model == Model.GPT_4o or model == Model.GPT_4o_fine_tuned_pathonly or model == Model.GPT_4o_fine_tuned_reasoning:
             load_dotenv()
@@ -265,7 +269,7 @@ class Prompter(ABC):
 
             return response.text
 
-        elif self.model == Model.SONNET:
+        elif self.model == Model.SONNET or self.model == Model.SONNET_VERTEX:
             if retry:
                 time.sleep(4)
 
@@ -290,7 +294,7 @@ class Prompter(ABC):
                                 }]
                         }
                     ],
-                    model="claude-3-haiku-20240307",
+                    model=self.model.value,
                 )
                 return response.content[0].text
             else:
@@ -302,7 +306,7 @@ class Prompter(ABC):
                             "content": prompt,
                         }
                     ],
-                    model="claude-3-haiku-20240307",
+                    model=self.model.value,
                 )
                 return response.content[0].text
 

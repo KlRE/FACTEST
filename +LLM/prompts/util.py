@@ -4,6 +4,7 @@ from time import strftime, gmtime
 import polytope as pc
 import numpy as np
 import vertexai
+from anthropic import AnthropicVertex
 from matplotlib import pyplot as plt
 from scipy.spatial import ConvexHull
 from vertexai.generative_models import GenerativeModel, Image
@@ -110,7 +111,7 @@ def test_chatgpt():
                     {
                         "type": "image_url",
                         "image_url": {
-                            "url": f"data:image/jpeg;base64,{base64.b64encode(img).decode('utf-8')}"
+                            "url": f"data:image/png;base64,{base64.b64encode(img).decode('utf-8')}"
                         }
                     }
                 ]
@@ -150,8 +151,36 @@ def test_claude():
                     }]
             }
         ],
-        model="claude-3-haiku-20240307",
+        model="claude-3-5-sonnet-20240620",
     )
+    print(message.content[0].text)
+
+
+def test_claude_vertex():
+    client = AnthropicVertex(region="europe-west1", project_id="gentle-keyword-432706-b3")
+    message = client.messages.create(
+        max_tokens=1024,
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": "image/png",
+                            "data": base64.b64encode(img).decode('utf-8'),
+                        },
+                    },
+                    {
+                        "type": "text",
+                        "text": "Describe this image."
+                    }]
+            }
+        ],
+        model="claude-3-5-sonnet@20240620",
+    )
+
     print(message.content[0].text)
 
 
@@ -237,7 +266,8 @@ if __name__ == "__main__":
     # test_gemini()
     # ätest_reges()
     # test_chatgpt()
-    test_claude()
+    test_claude_vertex()
+    # test_claude()
     # test_gemini()
     # random_test()
     # test_gemini_supabase()
